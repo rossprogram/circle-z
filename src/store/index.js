@@ -15,11 +15,22 @@ export default new Vuex.Store({
     users: {},
     nick: '',
     counter: 1,
+    connected: false,
 
     channels: [],
   },
   
   mutations: {
+    connected(state) {
+      state.connected = true;
+    },
+    disconnected(state) {
+      state.connected = false;
+    },
+    connecting(state) {
+      state.connected = false;
+    },
+    
     setNick(state, nick) {
       state.nick = nick;
     },
@@ -59,8 +70,18 @@ export default new Vuex.Store({
         gecos: 'real name',
         password: process.env.IRC_PASSWORD,
       });
+      commit('connecting');
 
+      irc.on('close', () => {
+        commit('disconnected');
+      });
+
+      irc.on('socket close', () => {
+        commit('disconnected');
+      });      
+      
       irc.on('registered', (event) => {
+        commit('connected');
         commit('setNick', event.nick);
         console.log(event);
         irc.list();
@@ -74,6 +95,14 @@ export default new Vuex.Store({
       irc.on('channel list', (event) => {
         console.log(event);
       });
+
+      irc.on('userlist', (event) => {
+        console.log('user list', event);
+      });      
+
+      irc.on('topic', (event) => {
+        console.log('topic', event);
+      });      
       
       irc.on('message', (event) => {
         console.log(event);
