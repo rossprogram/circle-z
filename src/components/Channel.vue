@@ -3,10 +3,12 @@
     <a>
       <span class="full-name">
 	<span class="hash-and-name">
-	  <span v-bind:class="{ hashes: true, unread: this.count > 0 }">{{
-	    this.name.replace(/[^#]/g,'') }}</span>
+	  <span class="hashes">
+	    <font-awesome-icon icon="hashtag"
+			       v-for="n in this.name.replace(/[^#]/g,'').length" v-bind:key="n" />
+	  </span>
 	  <span v-bind:class="{ 'channel-name': true, unread: this.count > 0 }">{{
-	    this.name.replace(/#/g,'') }}</span>
+	    this.name.replace(/#/g,'') }} 	    {{ }}</span>
 	</span>
 	<span class="counter" v-if="this.count > 0">{{ this.count }}</span>            
       </span>

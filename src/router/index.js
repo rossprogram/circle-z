@@ -3,6 +3,7 @@ import VueRouter from 'vue-router';
 import Home from '../views/Home.vue';
 import Chat from '../views/Chat.vue';
 import RoomList from '../views/RoomList.vue';
+import Settings from '../views/Settings.vue';
 
 Vue.use(VueRouter);
 
@@ -23,6 +24,12 @@ const routes = [
     path: '/rooms',
     name: 'rooms',
     component: RoomList,
+  },
+  
+  {
+    path: '/settings',
+    name: 'settings',
+    component: Settings,
   },
 ];
 

@@ -6,22 +6,17 @@
     <pane size="60">
       <router-view/>
     </pane>
-    <pane min-size="10" size="20" max-size="40">    
-      <UserList/>
-    </pane>
   </splitpanes>
 </template>
 
 <script>
 import ChannelList from '@/components/ChannelList.vue';
-import UserList from '@/components/UserList.vue';
 import '@/fonts/serif/cmun-serif.css';
 import '@/fonts/sans/cmun-sans.css';
 
 export default {
   components: {
     ChannelList,
-    UserList,
   },
 };
 </script>
