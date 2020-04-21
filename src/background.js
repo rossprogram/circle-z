@@ -4,6 +4,7 @@ import {
   createProtocol,
   /* installVueDevtools */
 } from 'vue-cli-plugin-electron-builder/lib';
+import store from './store';
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
@@ -74,7 +75,9 @@ app.on('ready', async () => {
     // }
 
   }
+
   createWindow();
+  store.dispatch('connectToIRC');
 });
 
 // Exit cleanly on request from parent process in development mode.
