@@ -4,7 +4,7 @@ import { createPersistedState, createSharedMutations } from 'vuex-electron';
 import IRC from 'irc-framework';
 
 Vue.use(Vuex);
-const irc = new IRC.Client();
+let irc;
 
 export default new Vuex.Store({
   state: {
@@ -13,26 +13,49 @@ export default new Vuex.Store({
     transcripts: {},
     usernames: [],
     users: {},
-    nick: '',
     counter: 1,
     connected: false,
+    connecting: false,
+    
+    server: 'irc.rossprogram.org',
+    port: 6667,
+    nick: 'robot2',
+    password: '',
 
     channels: [],
+    topics: {},
+    userCounts: {},
   },
   
   mutations: {
     connected(state) {
+      state.connecting = false;
       state.connected = true;
     },
     disconnected(state) {
+      state.connecting = false;
       state.connected = false;
     },
     connecting(state) {
       state.connected = false;
+      state.connecting = true;
     },
     
     setNick(state, nick) {
       state.nick = nick;
+    },
+
+    addChannels(state, channels) {
+      channels.forEach((channel) => {
+        const name = channel.channel;
+        const userCount = channel.num_users;
+        const { topic } = channel;
+        
+        if (state.channels.indexOf(name) < 0) state.channels.push(name);
+
+        Vue.set(state.topics, name, topic);
+        Vue.set(state.userCounts, name, userCount);        
+      });
     },
     
     markRead(state, roomname) {
@@ -57,23 +80,67 @@ export default new Vuex.Store({
         Vue.set(state.unreadCounts, roomname, 1);
       }
     },
+
+    setServerParameters(state, { server, port, password }) {
+      if (server !== undefined) state.server = server;
+      if (port !== undefined) state.port = port;
+      if (password !== undefined) state.password = password;
+    },
   },
   
   actions: {
-    connectToIRC({ dispatch, commit }) { // eslint-disable-line no-unused-vars
+    updateServerParameters({ commit }, { server, port, password }) {
+      commit('setServerParameters', { server, port, password });
+    },
+
+    quit(_, { message }) {
+      if (irc) irc.quit(message);
+    },
+
+    changeNick({ commit, state }, { nick }) {
+      if (irc && state.connected) irc.changeNick(nick);
+      else commit('setNick', nick);
+    },
+
+    list({ state }) {
+      if (irc && state.connected) irc.list();
+    },
+    
+    connectToIRC({ state, dispatch, commit }) { // eslint-disable-line no-unused-vars
       console.log('connecting to irc');
       
-      irc.connect({
-        host: 'irc.rossprogram.org',
-        port: 6667,
-        nick: 'robot',
-        gecos: 'real name',
-        password: process.env.IRC_PASSWORD,
-      });
       commit('connecting');
+
+      irc = new IRC.Client();
+
+      console.log(state.server, state.port);
+      console.log('password=', state.password);
+      
+      irc.connect({
+        host: state.server,
+        port: state.port,
+        nick: state.nick,
+        gecos: 'real name',
+        password: state.password,
+        encoding: 'utf8',
+        enable_echomessage: true,
+      });
 
       irc.on('close', () => {
         commit('disconnected');
+      });
+
+      irc.on('raw', (event) => {
+        console.log(event);
+      });
+      
+      irc.on('debug', (event) => {
+        console.log(event);
+      });
+      
+      irc.on('reconnecting', () => {
+        commit('disconnected');
+        commit('connecting');
       });
 
       irc.on('socket close', () => {
@@ -84,7 +151,7 @@ export default new Vuex.Store({
         commit('connected');
         commit('setNick', event.nick);
         console.log(event);
-        irc.list();
+        dispatch('list');
         irc.channel('##foyer').join();
       });
   
@@ -93,7 +160,7 @@ export default new Vuex.Store({
       });
   
       irc.on('channel list', (event) => {
-        console.log(event);
+        commit('addChannels', event);
       });
 
       irc.on('userlist', (event) => {
@@ -102,6 +169,10 @@ export default new Vuex.Store({
 
       irc.on('topic', (event) => {
         console.log('topic', event);
+      });
+      
+      irc.on('notice', (event) => {
+        console.log('notice', event);
       });      
       
       irc.on('message', (event) => {
@@ -129,7 +200,6 @@ export default new Vuex.Store({
           }
         }
       });
-      
     },
     
     appendToTranscript({ dispatch, commit }, // eslint-disable-line no-unused-vars
@@ -141,7 +211,8 @@ export default new Vuex.Store({
     
     sendMessage({ state, dispatch, commit }, // eslint-disable-line no-unused-vars
                 { roomname, message }) {
-      irc.say(roomname, message);
+      if (irc) irc.say(roomname, message);
+      
       commit('pushMessage',
              {
                roomname,

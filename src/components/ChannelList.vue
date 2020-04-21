@@ -1,6 +1,20 @@
 <template>
   <div class="channel-list">
-    <h2>irc.rossprogram.org
+    <h2>{{ server }}
+      <span class="disconnected"
+	    title="You are disconnected."
+	    v-if="connected === false && (connecting === false)">
+	<router-link :to="{ name: 'settings' }">
+	  <font-awesome-icon icon="exclamation-triangle" />
+	</router-link>
+      </span>
+      <span class="connecting"
+	    title="Connecting…"
+	    v-if="connected === false && (connecting === true)">
+	<router-link :to="{ name: 'settings' }">
+	  <font-awesome-icon icon="sync" />
+	</router-link>
+      </span>
     </h2>
     <h3>Rooms</h3>
     <ul>
@@ -30,18 +44,54 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import Channel from './Channel.vue';
 
 export default {
+  computed: {
+    ...mapState(['server', 'connected', 'connecting']),
+  },
+
+  name: 'ChannelList',
+  
   components: {
     Channel,
   },
-  name: 'ChannelList',
 };
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.75; }
+  100% { opacity: 1; }
+}
+  
+.disconnected a {
+    color: yellow;
+    animation: pulse 1s linear infinite;
+}
+
+.connecting a {
+    color: #aaa;
+}
+
+.connecting a svg {
+   animation-name: spin;
+    animation-duration: 4000ms;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+@keyframes spin {
+    from {
+        transform:rotate(0deg);
+    }
+    to {
+        transform:rotate(360deg);
+    }
+}
 
 .channel-list {
     background: #334;

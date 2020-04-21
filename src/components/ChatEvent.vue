@@ -48,6 +48,7 @@ export default {
     margin-left: 1em;
     margin-right: 0.5em;
     opacity: 0.4;
+    user-select: none;
 }
 
 .actor-name {

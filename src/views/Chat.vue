@@ -78,6 +78,7 @@ export default {
   div.transcript {
   flex-grow: 1;
   overflow-y: auto;
+  user-select: text;
   }
 
   input.message:focus {

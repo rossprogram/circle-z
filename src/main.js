@@ -1,7 +1,9 @@
 import Vue from 'vue';
 import { Splitpanes, Pane } from 'splitpanes';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faCog, faCity, faHashtag } from '@fortawesome/free-solid-svg-icons';
+import {
+ faCog, faCity, faHashtag, faExclamationTriangle, faSync,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import App from './App.vue';
 import router from './router';
@@ -9,7 +11,7 @@ import store from './store';
 
 import 'splitpanes/dist/splitpanes.css';
 
-library.add(faCog, faCity, faHashtag);
+library.add(faCog, faCity, faHashtag, faExclamationTriangle, faSync);
  
 Vue.component('font-awesome-icon', FontAwesomeIcon);
 

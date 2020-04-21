@@ -41,7 +41,8 @@ body {
   font-family: "Computer Modern Sans";
   margin: 0;
   height: 100vh;
-background-color: white;
+  background-color: white;
+  user-select: none;
 }
 
 html,body{margin:0;padding:0;}
