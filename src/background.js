@@ -23,6 +23,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
     },
+    icon: path.join(__static, 'icon.png'),
   });
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
