@@ -9,7 +9,6 @@ node_js:
 jobs:
   include:
     - os: osx
-      osx_image: xcode10.2
       language: node_js
       node_js: "11.14.0"
       env:
