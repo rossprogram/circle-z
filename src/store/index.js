@@ -19,7 +19,7 @@ export default new Vuex.Store({
     
     server: 'irc.rossprogram.org',
     port: 6667,
-    nick: 'robot2',
+    nick: 'yourname',
     password: '',
 
     channels: [],
