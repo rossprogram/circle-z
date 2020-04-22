@@ -1,7 +1,7 @@
 {
-  "name": "ross-irc",
+  "name": "circle-z",
   "version": "0.1.0",
-  "private": true,
+  "description": "An IRC client for online math courses",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
@@ -10,7 +10,8 @@
     "electron:build": "vue-cli-service electron:build",
     "electron:serve": "vue-cli-service electron:serve",
     "postinstall": "electron-builder install-app-deps",
-    "postuninstall": "electron-builder install-app-deps"
+    "postuninstall": "electron-builder install-app-deps",
+    "test": "echo success"
   },
   "build": {
     "appId": "org.rossprogram.app",
