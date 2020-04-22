@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import Home from '../views/Home.vue';
+import About from '../views/About.vue';
 import Chat from '../views/Chat.vue';
 import RoomList from '../views/RoomList.vue';
 import Settings from '../views/Settings.vue';
@@ -10,8 +10,8 @@ Vue.use(VueRouter);
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: Home,
+    name: 'About',
+    component: About,
   },
 
   {
