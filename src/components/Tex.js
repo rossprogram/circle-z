@@ -223,7 +223,8 @@ export default {
     
     const sheet = document.querySelector('#MJX-SVG-styles');
     if (sheet) sheet.parentNode.removeChild(sheet);
-    document.head.appendChild(MathJax.svgStylesheet());
+    
+    if (MathJax.svgStylesheet) document.head.appendChild(MathJax.svgStylesheet());
   },
   
   beforeMount() {

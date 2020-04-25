@@ -78,6 +78,7 @@ app.on('ready', async () => {
   }
 
   createWindow();
+  store.dispatch('createClient');
   store.dispatch('connectToIRC');
 });
 

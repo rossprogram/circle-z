@@ -1,30 +1,58 @@
 <template>
-<div class="chat">
-  <h2>{{ this.$route.params.id }}</h2>
-  <div class="transcript">
-    <ChatEvent v-for="message in transcript" v-bind:key="message.id"
-	       :actor="message.from"
-	       :timestamp="message.timestamp"
-	       :message="message.text"/>
-    <ChatEvent style="opacity: 0.5;" actor="me" :key="commandline" :message="commandline"/>
-  </div>
-  <input type="text" v-model="commandline" class="message"
-	 v-on:keyup.enter="processCommand"
-	 placeholder="Type your message…"/>
-</div>
+<Header :name="this.$route.params.id"
+	@leave='leave'
+	:buttons='{Leave:"sign-out-alt"}'>
+  <splitpanes class="default-theme">
+    <pane min-size="50" size="70" max-size="80">
+      <div class="chat">
+	<div class="transcript">
+	  <ChatEvent v-for="message in transcript"
+		     v-bind:key="message.id"
+		     :actor="message.from"
+		     :join="message.join"
+		     :part="message.part"
+		     :timestamp="message.timestamp"
+		     :action="message.action"
+		     :message="message.text"/>
+	  <ChatEvent style="opacity: 0.5;" actor="me" :key="commandline" :message="commandline"/>
+	</div>
+	<input type="text" v-model="commandline" class="message"
+	       v-on:keyup.enter="processCommand"
+	       placeholder="Type your message…"/>
+      </div>
+    </pane>
+    <pane size="20">
+      <div class="user-list">
+	<User v-for="user in usersInRoom" v-bind:key="user" :nick="user"/>
+      </div>
+    </pane>
+  </splitpanes>
+</Header>
 </template>
 
 <script>
 import { mapActions, mapState } from 'vuex';
 import ChatEvent from '@/components/ChatEvent.vue';
+import User from '@/components/User.vue';
+import Header from '@/components/Header.vue';
 
 export default {
   computed: {
-    ...mapState(['transcripts']),
+    ...mapState(['transcripts', 'joinedUsers']),
 
     transcript: {
       get() {
 	return this.transcripts[this.$route.params.id];
+      },
+    },
+
+    usersInRoom: {
+      get() {
+	if (this.joinedUsers[this.$route.params.id]) {
+	  return this.joinedUsers[this.$route.params.id].concat().sort();
+	} 
+	  return [];
+	
       },
     },
   },
@@ -48,7 +76,15 @@ export default {
   methods: {
     ...mapActions([
       'sendMessage',
+      'viewMessages',
+      'join',
+      'part',
     ]),
+
+    leave() {
+      this.part({ channel: this.$route.params.id });
+      this.$router.push({ name: 'rooms' });
+    },
 
     processCommand() {
       this.sendMessage({
@@ -58,9 +94,24 @@ export default {
       this.commandline = '';
     },
   },
-      
+
+  // Sometimes these are re-used, so between mounted and
+  // beforeRouteUpdate we capture both possibilities
+  beforeRouteUpdate(to, from, next) {
+    this.viewMessages({ channel: to.params.id });
+    this.join({ channel: to.params.id });
+    next();
+  },
+  
+  mounted() {
+    this.viewMessages({ channel: this.$route.params.id });
+    return this.join({ channel: this.$route.params.id });
+  },
+  
   components: {
     ChatEvent,
+    Header,
+    User,
   },
   name: 'Chat',
 };
@@ -68,8 +119,16 @@ export default {
 </script>
 
 <style scoped lang="scss">
+  .user-list {
+  height: 100%;
+  padding-left: 6pt;
+  border-left: solid #aaa 1px;
+  }
+  
   .chat {
-  height: 100vh;
+      height: 100%;
+      padding: 0;
+      margin: 0;
   display: flex;
   flex-direction: column;
     align-content: space-between;
@@ -91,7 +150,6 @@ export default {
   padding: 0pt;
   padding: 6pt;
   margin: 0;
-  width: 100%;
   font-family: monospace;
   }
   

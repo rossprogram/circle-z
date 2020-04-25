@@ -16,26 +16,43 @@
 	</router-link>
       </span>
     </h2>
+    
     <h3>Rooms</h3>
     <ul>
-      <Channel name="##foyer" :count="12"/>
-      <Channel name="####somany" :count="10"/>      
-      <Channel name="#hello"/>
-      <Channel name="#goodbye"/>
-      <Channel name="#whee" :count="912"/>
-      <Channel name="#what"/>
-      <Channel name="#butyes"/>
-      <Channel name="#aroom"/>
-    </ul>
-    <ul>
+      <Channel v-for="channel in sortedJoinedChannels"
+	       :name="channel"
+	       v-bind:key="channel"
+	       :count="unreadCounts[channel]"/>
       <router-link tag='li' :to="{ name: 'rooms' }">
 	<a><font-awesome-icon icon="city" />
-	  room list
+	  rooms
 	</a>
       </router-link>
+    </ul>
+    
+    <h3>Private Messages</h3>
+    <ul>
+      <Channel v-for="channel in sortedPrivateMessages"
+	       :name="channel"
+	       v-bind:key="channel"
+	       :count="unreadCounts[channel]"/>
+      <router-link tag='li' :to="{ name: 'users' }">
+	<a><font-awesome-icon icon="users" />
+	  people
+	</a>
+      </router-link>
+    </ul> 
+    
+    <h3></h3>     
+    <ul>
       <router-link tag='li' :to="{ name: 'settings' }">
 	<a><font-awesome-icon icon="cog" />
 	  settings
+	</a>
+      </router-link>
+      <router-link tag='li' :to="{ name: 'about' }">
+	<a><font-awesome-icon icon="info-circle" />
+	  about
 	</a>
       </router-link>
     </ul>
@@ -49,9 +66,31 @@ import Channel from './Channel.vue';
 
 export default {
   computed: {
-    ...mapState(['server', 'connected', 'connecting']),
+    ...mapState(['server', 'connected', 'connecting',
+		 'unreadCounts', 'joinedChannels']),
+
+    sortedJoinedChannels: {
+      get() {
+	// to perform a not-in-place sort
+	return this.joinedChannels.concat().sort().filter(this.isChannel);
+      },
+    },
+
+    sortedPrivateMessages: {
+      get() {
+	// to perform a not-in-place sort
+	return this.joinedChannels.concat().sort().filter((c) => !this.isChannel(c));
+      },
+    },
   },
 
+  methods: {
+    isChannel(name) {
+      if ((name[0] === '#') || (name[0] === '&')) return true;
+      return false;
+    },
+  },
+  
   name: 'ChannelList',
   
   components: {
@@ -106,12 +145,12 @@ export default {
 
 h2 {
     font-weight: normal;
-    height: 12pt;
+    height: 16pt;
     color: white;
     margin-top: 6pt;
     margin-bottom: 6pt;
     padding-bottom: 6pt;
-    font-size: 10pt;
+    font-size: 14pt;
     padding-left: 12pt;
     border-bottom: 1px solid #444;
 }

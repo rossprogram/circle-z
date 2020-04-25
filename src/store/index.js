@@ -22,6 +22,8 @@ export default new Vuex.Store({
     nick: 'yourname',
     password: '',
 
+    joinedUsers: {},
+    joinedChannels: [],
     channels: [],
     topics: {},
     userCounts: {},
@@ -45,6 +47,27 @@ export default new Vuex.Store({
       state.nick = nick;
     },
 
+    updateUsers(state, users) {
+      users.forEach((user) => {
+        const { nick } = user;
+        const { away } = user;
+        const { ident } = user;
+        const realName = user.real_name;
+        //const { hostname } = user;
+        //const { server } = user;        
+        
+        if (state.usernames.indexOf(nick) < 0) {
+          state.usernames.push(nick);
+          Vue.set(state.users, nick, { nick });
+        }
+
+        Vue.set(state.users[nick], 'away', away);
+        Vue.set(state.users[nick], 'online', true);
+        Vue.set(state.users[nick], 'realName', realName);
+        Vue.set(state.users[nick], 'ident', ident);        
+      });
+    },
+    
     addChannels(state, channels) {
       channels.forEach((channel) => {
         const name = channel.channel;
@@ -56,6 +79,15 @@ export default new Vuex.Store({
         Vue.set(state.topics, name, topic);
         Vue.set(state.userCounts, name, userCount);        
       });
+    },
+
+    addJoinedChannel(state, channel) {
+      if (state.joinedChannels.indexOf(channel) < 0) state.joinedChannels.push(channel);
+    },
+
+    removeJoinedChannel(state, channel) {
+      const index = state.joinedChannels.indexOf(channel);
+      if (index >= 0) state.joinedChannels.splice(index, 1);
     },
     
     markRead(state, roomname) {
@@ -86,6 +118,25 @@ export default new Vuex.Store({
       if (port !== undefined) state.port = port;
       if (password !== undefined) state.password = password;
     },
+
+    setJoinedUsers(state, { channel, users }) {
+      Vue.set(state.joinedUsers, channel, users);
+    },
+    
+    addJoinedUsers(state, { channel, user }) {
+      if (state.joinedUsers[channel] !== undefined) {
+        state.joinedUsers[channel].push(user);
+      } else {
+        Vue.set(state.joinedUsers, channel, [user]);
+      }
+    },
+    
+    removeJoinedUsers(state, { channel, user }) {
+      if (state.joinedUsers[channel] !== undefined) {
+        const index = state.joinedUsers[channel].indexOf(user);
+        if (index >= 0) state.joinedUsers[channel].splice(index, 1);
+      }
+    },
   },
   
   actions: {
@@ -97,34 +148,51 @@ export default new Vuex.Store({
       if (irc) irc.quit(message);
     },
 
+    viewMessages({ commit }, { channel }) {
+      commit('markRead', channel);
+    },
+    
+    join({ commit }, { channel }) {
+      if (irc) {
+        if ((channel[0] === '#') || (channel[0] === '&')) irc.channel(channel).join();
+        commit('addJoinedChannel', channel);
+      }
+    },
+
+    part({ commit }, { channel }) {
+      if (irc) {
+        if ((channel[0] === '#') || (channel[0] === '&')) irc.part(channel);
+        commit('removeJoinedChannel', channel);
+      }
+    },
+    
     changeNick({ commit, state }, { nick }) {
       if (irc && state.connected) irc.changeNick(nick);
       else commit('setNick', nick);
     },
 
     list({ state }) {
-      if (irc && state.connected) irc.list();
+      if (irc && state.connected) {
+        irc.list();
+        console.log('requesting channel list...');
+      }
+    },
+
+    who({ state }) {
+      if (irc && state.connected) {
+        irc.who('*');
+        console.log('requesting who *...');
+      }
+    },
+
+    joinPreviouslyJoinedChannels({ state }) {
+      state.joinedChannels.forEach(
+        (name) => irc.channel(name).join(),
+      );
     },
     
-    connectToIRC({ state, dispatch, commit }) { // eslint-disable-line no-unused-vars
-      console.log('connecting to irc');
-      
-      commit('connecting');
-
+    createClient({ dispatch, commit }) {
       irc = new IRC.Client();
-
-      console.log(state.server, state.port);
-      console.log('password=', state.password);
-      
-      irc.connect({
-        host: state.server,
-        port: state.port,
-        nick: state.nick,
-        gecos: 'real name',
-        password: state.password,
-        encoding: 'utf8',
-        enable_echomessage: true,
-      });
 
       irc.on('close', () => {
         commit('disconnected');
@@ -152,20 +220,68 @@ export default new Vuex.Store({
         commit('setNick', event.nick);
         console.log(event);
         dispatch('list');
-        irc.channel('##foyer').join();
+        dispatch('who');
+        dispatch('joinPreviouslyJoinedChannels');
       });
   
       irc.on('ctcp request', (event) => {
         console.log(event);
       });
-  
+
+      irc.on('users online', (event) => {
+        console.log('users online', event);
+      });
+
+      irc.on('whois', (event) => {
+        console.log('whois', event);
+      });
+
+      irc.on('wholist', (event) => {
+        commit('updateUsers', event.users);
+      });
+
       irc.on('channel list', (event) => {
         commit('addChannels', event);
       });
 
+      irc.on('join', (event) => {
+        commit('addJoinedUsers', {
+          channel: event.channel,
+          user: event.nick,
+        });
+        dispatch('appendToTranscript', {
+          roomname: event.channel,
+          message: {
+            from: event.nick,
+            join: true,
+            action: 'enters the room.',
+            timestamp: (new Date()).toString(),
+          },
+        });        
+      });
+
+      irc.on('part', (event) => {
+        commit('removeJoinedUsers', {
+          channel: event.channel,
+          user: event.nick,
+        });
+        dispatch('appendToTranscript', {
+          roomname: event.channel,
+          message: {
+            from: event.nick,
+            part: true,
+            action: 'leaves the room.',
+            timestamp: (new Date()).toString(),
+          },
+        });
+      });
+      
       irc.on('userlist', (event) => {
-        console.log('user list', event);
-      });      
+        commit('setJoinedUsers', {
+          channel: event.channel,
+          users: event.users.map((u) => u.nick), 
+        });
+      });
 
       irc.on('topic', (event) => {
         console.log('topic', event);
@@ -185,7 +301,7 @@ export default new Vuex.Store({
               message: {
                 from: event.nick,
                 text: event.message,
-                timestamp: new Date(),
+                timestamp: (new Date()).toString(),
               },
             });
           } else {
@@ -194,11 +310,50 @@ export default new Vuex.Store({
               message: {
                 from: event.nick,
                 text: event.message,
-                timestamp: new Date(),
+                timestamp: (new Date()).toString(),
               },
             });
           }
         }
+
+        if (event.type === 'action') {
+          if (event.target.match(/^#/)) {
+            dispatch('appendToTranscript', {
+              roomname: event.target,
+              message: {
+                from: event.nick,
+                action: event.message,
+                timestamp: (new Date()).toString(),
+              },
+            });
+          } else {
+            dispatch('appendToTranscript', {
+              roomname: event.nick,
+              message: {
+                from: event.nick,
+                action: event.message,
+                timestamp: (new Date()).toString(),
+              },
+            });
+          }
+        }
+      });      
+    },
+    
+    connectToIRC({ state, dispatch, commit }) { // eslint-disable-line no-unused-vars
+      commit('connecting');
+
+      console.log(state.server, state.port);
+      console.log('password=', state.password);
+      
+      irc.connect({
+        host: state.server,
+        port: state.port,
+        nick: state.nick,
+        gecos: 'real name',
+        password: state.password,
+        encoding: 'utf8',
+        enable_echomessage: true,
       });
     },
     
@@ -219,7 +374,7 @@ export default new Vuex.Store({
                message: {
                  from: state.nick,
                  text: message,
-                 timestamp: new Date(),
+                 timestamp: (new Date()).toString(),
                },
              });
     },

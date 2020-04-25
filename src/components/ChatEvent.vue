@@ -1,9 +1,10 @@
 <template>
   <div>
-    <span class="actor"><span class="actor-name">{{ this.actor }}</span></span>
-    <span class="message">
-      <span v-if="this.timestamp" class="timestamp">{{ this.timestamp | moment }}</span>    
-      <Tex>{{ this.message }}</Tex>
+    <span :class="{ actor: true, action: this.action, part: this.part, join: this.join}">
+      <span class="actor-name">{{ this.actor }}</span></span>
+    <span :class="{ message: true, action: this.action, part: this.part, join: this.join}">
+      <span v-if="this.timestamp" class="timestamp">{{ new Date(this.timestamp) | moment }}</span>
+      <Tex>{{ this.message ? this.message : this.action }}</Tex>
     </span>
   </div>
 </template>
@@ -17,7 +18,10 @@ export default {
   props: {
     actor: String,
     message: String,
-    timestamp: Date,
+    action: String,    
+    timestamp: String,
+    part: Boolean,
+    join: Boolean,
   },
   components: {
     Tex,
@@ -36,10 +40,25 @@ export default {
     display: inline-block;
     color: #888;
     font-size: 80%;
-    width: 15%;
+    width: 20%;
     text-align: right;
     vertical-align: baseline;
 }
+
+.action {
+    font-weight: bold;
+    font-family: "Computer Modern Serif";
+    color: black;
+    font-size: 100%;
+}
+
+.part {
+    color: red;
+}
+.join {
+    color: green;
+}
+
 
 .timestamp {
     float: right;
@@ -57,8 +76,9 @@ export default {
 
 .message {
     font-family: "Computer Modern Serif";
-    width: 85%;
+    width: 80%;
     display: inline-block;
     vertical-align: text-top;
     }
+
 </style>

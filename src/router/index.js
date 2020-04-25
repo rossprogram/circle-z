@@ -3,6 +3,7 @@ import VueRouter from 'vue-router';
 import About from '../views/About.vue';
 import Chat from '../views/Chat.vue';
 import RoomList from '../views/RoomList.vue';
+import UserList from '../views/UserList.vue';
 import Settings from '../views/Settings.vue';
 
 Vue.use(VueRouter);
@@ -10,7 +11,7 @@ Vue.use(VueRouter);
 const routes = [
   {
     path: '/',
-    name: 'About',
+    name: 'about',
     component: About,
   },
 
@@ -24,6 +25,12 @@ const routes = [
     path: '/rooms',
     name: 'rooms',
     component: RoomList,
+  },
+
+  {
+    path: '/users',
+    name: 'users',
+    component: UserList,
   },
   
   {

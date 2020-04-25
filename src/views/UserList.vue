@@ -1,26 +1,14 @@
 <template>
-<Header @refresh='refresh' :buttons="{ Refresh: 'sync' }" name="Rooms">
+<Header @refresh='refresh' :buttons="{ Refresh: 'sync' }" name="People">
   <div class="search-panel">
-    <span>
-      {{ filteredChannels.length }}
-      room{{ (filteredChannels.length === 1) ? '' : 's' }}
-    </span><input v-model="search" type="search" placeholder="Search">
+    <input v-model="search" type="search" placeholder="Search">
   </div>
   <div class="cards">
-    <div class="card-item" v-for="channel in filteredChannels" v-bind:key="channel">
-      <div class="card" @click="gotoChannel(channel)">
-	<span class="channel">
-	  <span class="hashes">
-	    <font-awesome-icon icon="hashtag"
-			       v-for="n in channel.replace(/[^#]/g,'').length" v-bind:key="n" />
-	  </span><span class="channel-name">{{ channel.replace(/#/g,'') }}</span>
+    <div class="card-item" v-for="user in filteredUsers" v-bind:key="user">
+      <div class="card" @click="gotoChannel(user)">
+	<span class="user">
+	  {{ user }}
 	</span>
-	<span class="user-count">
-	  {{ userCounts[channel] }}
-	  {{ (userCounts[channel] === 1) ? 'person' : 'people' }}
-	  {{ (joinedChannels.indexOf(channel) >= 0) ? 'including you' : '' }}
-	</span>
-	<span class="topic">{{ topics[channel] }}</span>
       </div>
     </div>
   </div>
@@ -45,21 +33,21 @@ export default {
   },
   
   computed: {
-    ...mapState(['channels', 'userCounts', 'topics', 'joinedChannels']),
+    ...mapState(['usernames', 'users']),
 
-    filteredChannels: {
+    filteredUsers: {
       get() {
-	return this.channels.filter(
+	return this.usernames.filter(
 	  (name) => name.toLowerCase().match(this.search.toLowerCase()),
 	).sort();
       },
     },
   },
   methods: {
-    ...mapActions(['list']),
+    ...mapActions(['who']),
 
     refresh() {
-      this.list();
+      this.who();
     },
 
     gotoChannel(channel) {
@@ -68,7 +56,7 @@ export default {
   },
 
   mounted() {
-    return this.list();
+    return this.who();
   },
 
 };
