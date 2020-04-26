@@ -1,24 +1,10 @@
-# ross-irc
+# What is Circle ℤ?
 
-## Project setup
-```
-yarn install
-```
+At its core, it is an IRC client, built upon code from [Kiwi
+IRC](https://github.com/kiwiirc/irc-framework).
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
+On top of that, we include quick access to videochat, built with
+[Jitsi](https://github.com/jitsi) for video conferences.  Each "room"
+(meaning an IRC channel) also gets its own collaborative TeX editor.
 
-### Compiles and minifies for production
-```
-yarn build
-```
-
-### Lints and fixes files
-```
-yarn lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+![image](./screenshot.png)
