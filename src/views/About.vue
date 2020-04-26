@@ -14,7 +14,9 @@
 	       href="https://rossprogram.org/">Ross Mathematics
 	  Program</a>.</p>
 
-      <div v-if="true || everConnected === false">
+      <p>This is version {{ version }}.</p>
+      
+      <div v-if="everConnected === false">
 	<h3>First time here?</h3>
 	<p>If this is your first time here, you should head to 
 	  <router-link :to="{ name: 'settings' }">Settings</router-link>
@@ -38,6 +40,7 @@
 <script>
 import Header from '@/components/Header.vue';
 import { mapState } from 'vuex';
+import Package from '@/../package.json';
 
 const { remote } = require('electron');
 
@@ -46,6 +49,12 @@ export default {
 
   computed: {
     ...mapState(['everConnected']),
+
+    version: {
+      get() {
+	return Package.version;
+      },
+    },
   },
   
   components: {

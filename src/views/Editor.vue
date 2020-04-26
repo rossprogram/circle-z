@@ -1,5 +1,5 @@
 <template>
-<Header :name="this.$route.params.id">
+<Header :name="this.$route.params.id/editor">
   <splitpanes class="default-theme">
     <pane min-size="50" size="70" max-size="80">
       <p>A codemirror editor!</p>
