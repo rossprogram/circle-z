@@ -27,10 +27,13 @@ export default new Vuex.Store({
     channels: [],
     topics: {},
     userCounts: {},
+
+    everConnected: false,
   },
   
   mutations: {
     connected(state) {
+      state.everConnected = true;
       state.connecting = false;
       state.connected = true;
     },
@@ -190,7 +193,7 @@ export default new Vuex.Store({
         (name) => irc.channel(name).join(),
       );
     },
-    
+
     createClient({ dispatch, commit }) {
       irc = new IRC.Client();
 
@@ -257,7 +260,7 @@ export default new Vuex.Store({
             action: 'enters the room.',
             timestamp: (new Date()).toString(),
           },
-        });        
+        });
       });
 
       irc.on('part', (event) => {
@@ -313,6 +316,7 @@ export default new Vuex.Store({
                 timestamp: (new Date()).toString(),
               },
             });
+            commit('addJoinedChannel', event.nick);
           }
         }
 
@@ -335,6 +339,7 @@ export default new Vuex.Store({
                 timestamp: (new Date()).toString(),
               },
             });
+            commit('addJoinedChannel', event.nick);
           }
         }
       });      

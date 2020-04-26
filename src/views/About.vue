@@ -1,7 +1,8 @@
 <template>
-<Header name="About this program">
+<Header name="About">
   <div class="page">
     <div class="content">
+      <h3>What is this?</h3>
       <p><img alt="Circle Z logo" src="../assets/icon.png"/>
 	This is <span class="circle">ℤ</span>, or
 	&ldquo;C<span class="irc">irc</span>le ℤ,&rdquo; an
@@ -12,6 +13,17 @@
 	the <a target="_blank" @click.prevent="openExternalBrowser"
 	       href="https://rossprogram.org/">Ross Mathematics
 	  Program</a>.</p>
+
+      <div v-if="true || everConnected === false">
+	<h3>First time here?</h3>
+	<p>If this is your first time here, you should head to 
+	  <router-link :to="{ name: 'settings' }">Settings</router-link>
+	  to configure your connection.
+	</p>
+	<p>After you've connected, you can visit the various rooms and
+	discuss mathematical ideas with your friends.</p>
+      </div>
+      
     </div>
     <footer>
       <p>Copyright &copy; 2020, Jim Fowler.</p>
@@ -25,11 +37,17 @@
 
 <script>
 import Header from '@/components/Header.vue';
+import { mapState } from 'vuex';
 
 const { remote } = require('electron');
 
 export default {
   name: 'Home',
+
+  computed: {
+    ...mapState(['everConnected']),
+  },
+  
   components: {
     Header,
   },
@@ -46,6 +64,16 @@ export default {
   display: flex;
   flex-direction: column;
   min-height: 100%;
+  }
+
+  p {
+      margin-bottom: 6pt;
+      margin-top: 0;
+  }
+  
+  h3 {
+      margin-bottom: 3pt;
+      margin-top: 12pt;
   }
 
   .content {
@@ -73,8 +101,8 @@ export default {
 
   img {
   float: right;
-  width: 25vh;
-  height: 25vh;
+  width: 15vh;
+  height: 15vh;
   }
   
 </style>

@@ -184,7 +184,7 @@ li {
 }
 
 
-li.router-link-exact-active {
+li.router-link-active {
     background-color: #45f;
 }
 

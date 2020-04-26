@@ -3,7 +3,7 @@ import { Splitpanes, Pane } from 'splitpanes';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
   faCog, faCity, faHashtag, faExclamationTriangle, faSync,
-  faInfoCircle, faSignOutAlt, faUsers,
+  faInfoCircle, faSignOutAlt, faUsers, faPencilAlt, faVideo,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import App from './App.vue';
@@ -19,7 +19,9 @@ library.add(faCog,
             faSync,
             faInfoCircle,
             faSignOutAlt,
-            faUsers);
+            faUsers,
+            faVideo,
+            faPencilAlt);
  
 Vue.component('font-awesome-icon', FontAwesomeIcon);
 

@@ -1,7 +1,9 @@
 <template>
 <Header :name="this.$route.params.id"
 	@leave='leave'
-	:buttons='{Leave:"sign-out-alt"}'>
+	@video='video'
+	@editor='editor'
+	:buttons='{Video:"video",Editor:"pencil-alt", Leave:"sign-out-alt"}'>
   <splitpanes class="default-theme">
     <pane min-size="50" size="70" max-size="80">
       <div class="chat">
@@ -81,6 +83,20 @@ export default {
       'part',
     ]),
 
+    editor() {
+      this.$router.push({
+	name: 'editor',
+	params: { id: this.$route.params.id }, 
+      });
+    },
+
+    video() {
+      this.$router.push({
+	name: 'video',
+	params: { id: this.$route.params.id }, 
+      });
+    },
+    
     leave() {
       this.part({ channel: this.$route.params.id });
       this.$router.push({ name: 'rooms' });
