@@ -1,11 +1,14 @@
 import path from 'path';
-import { app, protocol, BrowserWindow } from 'electron';
+import {
+ app, protocol, Menu, BrowserWindow, 
+} from 'electron';
 import {
   createProtocol,
   /* installVueDevtools */
 } from 'vue-cli-plugin-electron-builder/lib';
 import store from './store';
 
+const isMac = process.platform === 'darwin';
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -35,6 +38,90 @@ function createWindow() {
     // Load the index.html when not in development
     win.loadURL('app://./index.html');
   }
+  const template = [
+    // { role: 'appMenu' }
+    ...(isMac ? [{
+      label: app.name,
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'services' },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideothers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' },
+      ],
+    }] : []),
+    // { role: 'fileMenu' }
+    {
+      label: 'File',
+      submenu: [
+        isMac ? { role: 'close' } : { role: 'quit' },
+      ],
+    },
+    // { role: 'editMenu' }
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'delete' },
+        { role: 'selectAll' },
+      ],
+    },
+    // { role: 'viewMenu' }
+    {
+      label: 'View',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forcereload' },
+        { role: 'toggledevtools' },
+        { type: 'separator' },
+        { role: 'resetzoom' },
+        { role: 'zoomin' },
+        { role: 'zoomout' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' },
+      ],
+    },
+    // { role: 'windowMenu' }
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'zoom' },
+        ...(isMac ? [
+          { type: 'separator' },
+          { role: 'front' },
+          { type: 'separator' },
+          { role: 'window' },
+        ] : [
+          { role: 'close' },
+        ]),
+      ],
+    },
+    {
+      role: 'help',
+      submenu: [
+        {
+          label: 'Learn More',
+          click: async () => {
+            const { shell } = require('electron');
+            await shell.openExternal('https://rossprogram.org');
+          },
+        },
+      ],
+    },
+  ];
+  
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu); 
 
   win.on('closed', () => {
     win = null;

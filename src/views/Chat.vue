@@ -3,7 +3,7 @@
 	@leave='leave'
 	@video='video'
 	@editor='editor'
-	:buttons='{Video:"video",Editor:"pencil-alt", Leave:"sign-out-alt"}'>
+	:buttons='buttons'>
   <splitpanes class="default-theme">
     <pane min-size="50" size="70" max-size="80">
       <div class="chat">
@@ -42,6 +42,16 @@ export default {
   computed: {
     ...mapState(['transcripts', 'joinedUsers']),
 
+    buttons: {
+      get() {
+	const channel = this.$route.params.id;
+	
+	if ((channel[0] === '#') || (channel[0] === '&')) return { Video: 'video', Editor: 'pencil-alt', Leave: 'sign-out-alt' };
+
+	return { Editor: 'pencil-alt', Leave: 'sign-out-alt' };
+      },
+    },
+    
     transcript: {
       get() {
 	return this.transcripts[this.$route.params.id];
@@ -91,10 +101,11 @@ export default {
     },
 
     video() {
-      this.$router.push({
+      const routeData = this.$router.resolve({
 	name: 'video',
 	params: { id: this.$route.params.id }, 
       });
+      window.open(routeData.href, '_blank');
     },
     
     leave() {

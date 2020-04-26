@@ -194,7 +194,7 @@ export default new Vuex.Store({
       );
     },
 
-    createClient({ dispatch, commit }) {
+    createClient({ state, dispatch, commit }) {
       irc = new IRC.Client();
 
       irc.on('close', () => {
@@ -216,7 +216,12 @@ export default new Vuex.Store({
 
       irc.on('socket close', () => {
         commit('disconnected');
-      });      
+      });
+
+      irc.on('nick', (event) => {
+        if (event.nick === state.nick) commit('setNick', event.new_nick);
+        console.log('nick', event);
+      });
       
       irc.on('registered', (event) => {
         commit('connected');
