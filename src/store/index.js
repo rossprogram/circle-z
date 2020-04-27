@@ -70,6 +70,12 @@ export default new Vuex.Store({
         Vue.set(state.users[nick], 'ident', ident);        
       });
     },
+
+    emptyChannels(state) {
+      state.channels.forEach((channel) => {
+        Vue.set(state.userCounts, channel, 0);
+      });
+    },
     
     addChannels(state, channels) {
       channels.forEach((channel) => {
@@ -249,6 +255,7 @@ export default new Vuex.Store({
       });
 
       irc.on('channel list', (event) => {
+        commit('emptyChannels');
         commit('addChannels', event);
       });
 

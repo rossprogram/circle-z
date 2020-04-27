@@ -23,8 +23,20 @@
 	<span class="topic">{{ topics[channel] }}</span>
       </div>
     </div>
+    <div v-if="newChannel" class="card-item" key="newChannel">
+      <div class="card" @click="gotoChannel(newChannel)">
+	<span class="channel">
+	  <span class="hashes">
+	    <font-awesome-icon icon="hashtag"
+			       v-for="n in newChannel.replace(/[^#]/g,'').length" v-bind:key="n" />
+	  </span><span class="channel-name">{{ newChannel.replace(/#/g,'') }}</span>
+	</span>
+	<span class="user-count">
+	  0 people.
+	</span>
+      </div>
+    </div>
   </div>
-  
 </Header>
 </template>
 
@@ -47,9 +59,32 @@ export default {
   computed: {
     ...mapState(['channels', 'userCounts', 'topics', 'joinedChannels']),
 
+    newChannel: {
+      get() {
+
+	if (this.search) {
+	  if (this.search === '') return undefined;
+	  if (this.search.match(/[A-Za-z]/)) {
+	    let newName = this.search.replace(/[^#A-Za-z0-9]/g, '');
+	    newName = newName.toLowerCase();
+	    
+	    if (newName[0] !== '#') newName = `#${newName}`;
+
+	    if (this.filteredChannels.indexOf(newName) >= 0) return undefined;
+	    
+	    return newName;
+	  }
+	}
+
+	return undefined;
+      },
+    },
+    
     filteredChannels: {
       get() {
-	return this.channels.filter(
+	const nonemptyChannels = this.channels.filter((name) => this.userCounts[name] > 0);
+	
+	return nonemptyChannels.filter(
 	  (name) => name.toLowerCase().match(this.search.toLowerCase()),
 	).sort();
       },
