@@ -1,5 +1,4 @@
 <template>
-  <router-link tag='li' :to="{ name: 'chat', params: { id: this.name }}">
     <a>
       <span class="full-name">
 	<span class="hash-and-name">
@@ -13,7 +12,6 @@
 	<span class="counter" v-if="this.count > 0">{{ this.count }}</span>            
       </span>
     </a>
-  </router-link>  
 </template>
 
 <script>
@@ -28,22 +26,11 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
-  li {
-  padding: 6pt;
-}
+
 
   .unread {
       font-weight: bold;
   }
-
-  li.router-link-exact-active {
-background-color: #45f;
-}
-
-li a {
-text-decoration: none;
-color: white;
-}
 
   
 .full-name {

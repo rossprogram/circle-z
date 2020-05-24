@@ -1,22 +1,36 @@
 <template>
-  <splitpanes class="default-theme">
-    <pane min-size="10" size="20" max-size="40">
-      <ChannelList/>
-    </pane>
-    <pane size="60">
-      <router-view/>
-    </pane>
-  </splitpanes>
+  <div>
+    <Snackbar/>
+    <splitpanes class="default-theme">
+      <pane min-size="10" size="20" max-size="40">
+	<ChannelList/>
+      </pane>
+      <pane size="60">
+	<router-view/>
+      </pane>
+    </splitpanes>
+  </div>
 </template>
 
 <script>
 import ChannelList from '@/components/ChannelList.vue';
+import Snackbar from '@/components/Snackbar.vue';
 import '@/fonts/serif/cmun-serif.css';
 import '@/fonts/sans/cmun-sans.css';
+import { mapActions } from 'vuex';
 
 export default {
   components: {
     ChannelList,
+    Snackbar,
+  },
+
+  methods: {
+    ...mapActions(['initialize']),
+  },
+      
+  created() {
+    this.initialize();
   },
 };
 </script>
@@ -73,4 +87,5 @@ html,body{margin:0;padding:0;}
     }
   }
 }
+
 </style>

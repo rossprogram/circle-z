@@ -194,6 +194,7 @@ export default {
   data() {
     return {
       sourceData: this.source,
+      theNode: undefined,
     };
   },
 
@@ -214,7 +215,8 @@ export default {
     };
 
     const node = document.createElement('div');
-
+    this.theNode = node;
+    
     parseText(tokenizer, (el) => {
       node.appendChild(el);
     });
@@ -237,5 +239,8 @@ export default {
       this.$forceUpdate();
     });
   },
-  
+
+  beforeDestroy() {
+    this.theNode.parentNode.removeChild(this.theNode);
+  },
 };

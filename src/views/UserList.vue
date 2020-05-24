@@ -4,10 +4,11 @@
     <input v-model="search" type="search" placeholder="Search">
   </div>
   <div class="cards">
-    <div class="card-item" v-for="user in filteredUsers" v-bind:key="user">
-      <div class="card" @click="gotoChannel(user)">
+    <div class="card-item" v-for="id in filteredUserIds" v-bind:key="id">
+      <div class="card" @click="gotoUser(id)">
 	<span class="user">
-	  {{ user }}
+	  <span class="username">{{ users[id].username }}</span>
+	  <span class="realname">{{ users[id].firstName }} {{ users[id].lastName }}</span>	  
 	</span>
       </div>
     </div>
@@ -21,7 +22,7 @@ import Header from '@/components/Header.vue';
 import { mapActions, mapState } from 'vuex';
 
 export default {
-  name: 'RoomList',
+  name: 'UserList',
   components: {
     Header,
   },
@@ -33,13 +34,19 @@ export default {
   },
   
   computed: {
-    ...mapState(['usernames', 'users']),
+    ...mapState(['userIds', 'users']),
 
-    filteredUsers: {
+    filteredUserIds: {
       get() {
-	return this.usernames.filter(
-	  (name) => name.toLowerCase().match(this.search.toLowerCase()),
-	).sort();
+	return this.userIds.filter(
+	  (id) => JSON.stringify(this.users[id]).toLowerCase().match(this.search.toLowerCase()),
+	).sort((a, b) => {
+	  const ua = this.users[a].username;
+	  const ub = this.users[b].username;
+	  if (ua > ub) return 1;
+	  if (ua < ub) return -1;
+	  return 0;
+	});
       },
     },
   },
@@ -50,8 +57,8 @@ export default {
       this.who();
     },
 
-    gotoChannel(channel) {
-      this.$router.push({ name: 'chat', params: { id: channel } });
+    gotoUser(id) {
+      this.$router.push({ name: 'user', params: { id } });
     },
   },
 

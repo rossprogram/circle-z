@@ -5,7 +5,7 @@
       <h3>What is this?</h3>
       <p><img alt="Circle Z logo" src="../assets/icon.png"/>
 	This is <span class="circle">ℤ</span>, or
-	&ldquo;C<span class="irc">irc</span>le ℤ,&rdquo; an
+	&ldquo;C<span class="irc">irc</span>le ℤ,&rdquo; which began life as an
 	<a target="_blank" @click.prevent="openExternalBrowser"
 	   href="https://en.wikipedia.org/wiki/Internet_Relay_Chat">IRC</a>
 	client with special features to facilitate online mathematics
@@ -46,7 +46,12 @@ const { remote } = require('electron');
 
 export default {
   name: 'Home',
-
+  
+  data() {
+    return {
+    };
+  },
+  
   computed: {
     ...mapState(['everConnected']),
 

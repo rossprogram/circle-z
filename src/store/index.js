@@ -1,37 +1,62 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import { createPersistedState, createSharedMutations } from 'vuex-electron';
-import IRC from 'irc-framework';
+import * as service from '../services';
 
 Vue.use(Vuex);
-let irc;
 
 export default new Vuex.Store({
   state: {
-    roomnames: [],
     unreadCounts: {},
     transcripts: {},
-    usernames: [],
+
+    joinedRooms: [],
+
+    privateTranscripts: {},    
+    privateUnreadCounts: {},    
+        
+    userIds: [],
     users: {},
+    
+    roomnames: [],
+    rooms: {},
+    
     counter: 1,
+
     connected: false,
     connecting: false,
     
+    mumblePort: 64738,
+    // mumbleServer: 'irc.rossprogram.org',
+    
     server: 'irc.rossprogram.org',
-    port: 6667,
-    nick: 'yourname',
+    port: 7817,
+    email: '',
     password: '',
 
-    joinedUsers: {},
-    joinedChannels: [],
-    channels: [],
-    topics: {},
-    userCounts: {},
-
     everConnected: false,
+    snackbar: { snack: '', visible: false },
+  },
+
+  getters: {
+    mumbleUrl: (state) => {
+      console.log(state.self);
+      if (state.self && state.self.username && state.self.mumblePassword) {
+        const { username } = state.self;
+        const password = state.self.mumblePassword;
+        return `mumble://${username}:${password}@${state.server}:${state.mumblePort}/`;
+      } 
+        return `mumble://${state.server}:${state.mumblePort}/`;
+      
+    },
   },
   
   mutations: {
+    showSnack(state, snack) {
+      state.snackbar.snack = snack;
+      state.snackbar.visible = true;
+    },
+    
     connected(state) {
       state.everConnected = true;
       state.connecting = false;
@@ -40,79 +65,102 @@ export default new Vuex.Store({
     disconnected(state) {
       state.connecting = false;
       state.connected = false;
+
+      state.users = {};
+      state.userIds = [];
+      state.rooms = {};
+      state.roomnames = [];
     },
     connecting(state) {
       state.connected = false;
       state.connecting = true;
     },
     
-    setNick(state, nick) {
-      state.nick = nick;
+    setSelf(state, self) {
+      state.self = self;
     },
 
     updateUsers(state, users) {
       users.forEach((user) => {
-        const { nick } = user;
-        const { away } = user;
-        const { ident } = user;
-        const realName = user.real_name;
-        //const { hostname } = user;
-        //const { server } = user;        
+        const {
+          id, email, username, firstName, nickname, lastName,
+          isSuperuser, isCounselor, isJuniorCounselor,
+          isStaff, isConnected, 
+        } = user;
         
-        if (state.usernames.indexOf(nick) < 0) {
-          state.usernames.push(nick);
-          Vue.set(state.users, nick, { nick });
+        if (state.userIds.indexOf(id) < 0) {
+          state.userIds.push(id);
+          Vue.set(state.users, id, { id });
         }
 
-        Vue.set(state.users[nick], 'away', away);
-        Vue.set(state.users[nick], 'online', true);
-        Vue.set(state.users[nick], 'realName', realName);
-        Vue.set(state.users[nick], 'ident', ident);        
+        Vue.set(state.users[id], 'email', email);
+        Vue.set(state.users[id], 'username', username);
+        Vue.set(state.users[id], 'firstName', firstName);
+        Vue.set(state.users[id], 'nickname', nickname);
+        Vue.set(state.users[id], 'lastName', lastName);
+        Vue.set(state.users[id], 'isSuperuser', isSuperuser);
+        Vue.set(state.users[id], 'isCounselor', isCounselor);
+        Vue.set(state.users[id], 'isJuniorCounselor', isJuniorCounselor);
+        Vue.set(state.users[id], 'isStaff', isStaff);
+        Vue.set(state.users[id], 'isConnected', isConnected);
       });
     },
 
-    emptyChannels(state) {
-      state.channels.forEach((channel) => {
-        Vue.set(state.userCounts, channel, 0);
+    updateRooms(state, rooms) {
+      rooms.forEach((room) => {
+        const { name, users } = room;
+
+        if (state.roomnames.indexOf(name) < 0) {
+          state.roomnames.push(name);
+          Vue.set(state.rooms, name, { name });
+        }
+
+        Vue.set(state.rooms[name], 'users', users);
       });
     },
     
-    addChannels(state, channels) {
-      channels.forEach((channel) => {
-        const name = channel.channel;
-        const userCount = channel.num_users;
-        const { topic } = channel;
-        
-        if (state.channels.indexOf(name) < 0) state.channels.push(name);
-
-        Vue.set(state.topics, name, topic);
-        Vue.set(state.userCounts, name, userCount);        
-      });
+    joinRoom(state, room) {
+      if (state.joinedRooms.indexOf(room) < 0) state.joinedRooms.push(room);
     },
 
-    addJoinedChannel(state, channel) {
-      if (state.joinedChannels.indexOf(channel) < 0) state.joinedChannels.push(channel);
-    },
-
-    removeJoinedChannel(state, channel) {
-      const index = state.joinedChannels.indexOf(channel);
-      if (index >= 0) state.joinedChannels.splice(index, 1);
+    leaveRoom(state, room) {
+      const index = state.joinedRooms.indexOf(room);
+      if (index >= 0) state.joinedRooms.splice(index, 1);
     },
     
     markRead(state, roomname) {
       Vue.set(state.unreadCounts, roomname, 0);
     },
 
-    pushMessage(state, { roomname, message }) {
-      if (state.transcripts[roomname] !== undefined) {
-        state.transcripts[roomname].push({ ...message, id: state.counter });
+    markPrivateRead(state, id) {
+      Vue.set(state.privateUnreadCounts, id, 0);
+    },    
+
+    removePrivateTranscript(state, id) {
+      Vue.set(state.privateUnreadCounts, id, 0);
+      Vue.delete(state.privateTranscripts, id);
+    },
+    
+    pushMessage(state, { room, message }) {
+      if (state.transcripts[room] !== undefined) {
+        state.transcripts[room].push({ ...message, id: state.counter });
       } else {
-        state.roomnames.push(roomname);
-        Vue.set(state.transcripts, roomname, [{ ...message, id: state.counter }]);
+        state.roomnames.push(room);
+        Vue.set(state.transcripts, room, [{ ...message, id: state.counter }]);
       }
 
       state.counter += 1;
     },
+
+    pushPrivateMessage(state, { user, message }) {
+      if (state.privateTranscripts[user] !== undefined) {
+        state.privateTranscripts[user].push({ ...message, id: state.counter });
+      } else {
+        Vue.set(state.privateTranscripts, user, [{ ...message, id: state.counter }]);
+      }
+
+      state.counter += 1;
+    },    
     
     incrementUnreadCount(state, roomname) {
       if (state.unreadCounts[roomname] !== undefined) {
@@ -122,126 +170,77 @@ export default new Vuex.Store({
       }
     },
 
-    setServerParameters(state, { server, port, password }) {
+    incrementPrivateUnreadCount(state, id) {
+      if (state.privateUnreadCounts[id] !== undefined) {
+        Vue.set(state.privateUnreadCounts, id, state.privateUnreadCounts[id] + 1);
+      } else {
+        Vue.set(state.privateUnreadCounts, id, 1);
+      }
+    },
+    
+    setServerParameters(state, {
+      server, port, password, email, 
+    }) {
       if (server !== undefined) state.server = server;
       if (port !== undefined) state.port = port;
+      if (email !== undefined) state.email = email;
       if (password !== undefined) state.password = password;
     },
 
-    setJoinedUsers(state, { channel, users }) {
-      Vue.set(state.joinedUsers, channel, users);
-    },
-    
-    addJoinedUsers(state, { channel, user }) {
-      if (state.joinedUsers[channel] !== undefined) {
-        state.joinedUsers[channel].push(user);
-      } else {
-        Vue.set(state.joinedUsers, channel, [user]);
-      }
-    },
-    
-    removeJoinedUsers(state, { channel, user }) {
-      if (state.joinedUsers[channel] !== undefined) {
-        const index = state.joinedUsers[channel].indexOf(user);
-        if (index >= 0) state.joinedUsers[channel].splice(index, 1);
-      }
-    },
   },
   
   actions: {
-    updateServerParameters({ commit }, { server, port, password }) {
-      commit('setServerParameters', { server, port, password });
+    updateServerParameters({ commit }, {
+      server, port, password, email, 
+    }) {
+      commit('setServerParameters', {
+        server, port, password, email, 
+      });
     },
 
-    quit(_, { message }) {
-      if (irc) irc.quit(message);
+    viewMessages({ commit }, { room }) { // eslint-disable-line no-unused-vars
+      commit('markRead', room);
     },
 
-    viewMessages({ commit }, { channel }) {
-      commit('markRead', channel);
+    viewPrivateMessages({ commit }, { user }) { // eslint-disable-line no-unused-vars
+      commit('markPrivateRead', user);
+    },    
+
+    quit({ commit }) { // eslint-disable-line no-unused-vars
+      service.quit();
     },
     
-    join({ commit }, { channel }) {
-      if (irc) {
-        if ((channel[0] === '#') || (channel[0] === '&')) irc.channel(channel).join();
-        commit('addJoinedChannel', channel);
-      }
+    join({ commit }, { room }) { // eslint-disable-line no-unused-vars
+      service.join(room);
     },
 
-    part({ commit }, { channel }) {
-      if (irc) {
-        if ((channel[0] === '#') || (channel[0] === '&')) irc.part(channel);
-        commit('removeJoinedChannel', channel);
-      }
-    },
+    part({ commit }, { room }) { // eslint-disable-line no-unused-vars
+      service.part(room);
+      commit('leaveRoom', room);
+    },    
     
-    changeNick({ commit, state }, { nick }) {
-      if (irc && state.connected) irc.changeNick(nick);
-      else commit('setNick', nick);
+    list() {
+      service.list();
     },
 
-    list({ state }) {
-      if (irc && state.connected) {
-        irc.list();
-        console.log('requesting channel list...');
-      }
+    who() {
+      service.who();
     },
 
-    who({ state }) {
-      if (irc && state.connected) {
-        irc.who('*');
-        console.log('requesting who *...');
-      }
-    },
+    focus({ commit }, room) { // eslint-disable-line no-unused-vars
+      service.focus(room);
+    },    
 
     joinPreviouslyJoinedChannels({ state }) {
-      state.joinedChannels.forEach(
-        (name) => irc.channel(name).join(),
-      );
+      state.joinedChannels.forEach(service.join);
     },
 
-    createClient({ state, dispatch, commit }) {
-      irc = new IRC.Client();
+    initialize({ commit }) {
+      commit('disconnected');
+    },
 
-      irc.on('close', () => {
-        commit('disconnected');
-      });
-
-      irc.on('raw', (event) => {
-        console.log(event);
-      });
-      
-      irc.on('debug', (event) => {
-        console.log(event);
-      });
-      
-      irc.on('reconnecting', () => {
-        commit('disconnected');
-        commit('connecting');
-      });
-
-      irc.on('socket close', () => {
-        commit('disconnected');
-      });
-
-      irc.on('nick', (event) => {
-        if (event.nick === state.nick) commit('setNick', event.new_nick);
-        console.log('nick', event);
-      });
-      
-      irc.on('registered', (event) => {
-        commit('connected');
-        commit('setNick', event.nick);
-        console.log(event);
-        dispatch('list');
-        dispatch('who');
-        dispatch('joinPreviouslyJoinedChannels');
-      });
-  
-      irc.on('ctcp request', (event) => {
-        console.log(event);
-      });
-
+    /*
+    createClient({ dispatch, commit }) {
       irc.on('users online', (event) => {
         console.log('users online', event);
       });
@@ -250,14 +249,6 @@ export default new Vuex.Store({
         console.log('whois', event);
       });
 
-      irc.on('wholist', (event) => {
-        commit('updateUsers', event.users);
-      });
-
-      irc.on('channel list', (event) => {
-        commit('emptyChannels');
-        commit('addChannels', event);
-      });
 
       irc.on('join', (event) => {
         commit('addJoinedUsers', {
@@ -298,13 +289,6 @@ export default new Vuex.Store({
         });
       });
 
-      irc.on('topic', (event) => {
-        console.log('topic', event);
-      });
-      
-      irc.on('notice', (event) => {
-        console.log('notice', event);
-      });      
       
       irc.on('message', (event) => {
         console.log(event);
@@ -356,40 +340,90 @@ export default new Vuex.Store({
         }
       });      
     },
+    */
     
-    connectToIRC({ state, dispatch, commit }) { // eslint-disable-line no-unused-vars
+    connect({ state, dispatch, commit }) { // eslint-disable-line no-unused-vars
       commit('connecting');
 
-      console.log(state.server, state.port);
-      console.log('password=', state.password);
-      
-      irc.connect({
+      const server = service.connect({
         host: state.server,
         port: state.port,
-        nick: state.nick,
-        gecos: 'real name',
+        email: state.email,
         password: state.password,
-        encoding: 'utf8',
-        enable_echomessage: true,
       });
-    },
-    
-    appendToTranscript({ dispatch, commit }, // eslint-disable-line no-unused-vars
-                       { roomname, message }) { 
-      console.log({ roomname, message });
-      commit('pushMessage', { roomname, message });
-      commit('incrementUnreadCount', roomname);
-    },
-    
-    sendMessage({ state, dispatch, commit }, // eslint-disable-line no-unused-vars
-                { roomname, message }) {
-      if (irc) irc.say(roomname, message);
+
+      server.on('users', (users) => {
+        commit('updateUsers', users);
+      });
+
+      server.on('rooms', (rooms) => {
+        commit('updateRooms', rooms);
+      });
       
-      commit('pushMessage',
+      server.on('error', (error) => {
+        commit('showSnack', error);
+      });
+
+      server.on('connected', (user) => {
+        commit('connected');
+        commit('setSelf', user);
+        dispatch('who');
+        dispatch('list');
+      });
+
+      server.on('disconnected', () => {
+        commit('disconnected');
+      });      
+
+      server.on('joined', (room) => {
+        commit('joinRoom', room);
+      });
+
+      server.on('say', (room, from, text) => {
+        commit('pushMessage', {
+          room,
+          message: {
+            from,
+            text,
+            timestamp: (new Date()).toString(),
+          },
+        });
+        commit('incrementUnreadCount', room);
+      });
+
+      server.on('privmsg', (from, text) => {
+        commit('pushPrivateMessage', {
+          user: from,
+          message: {
+            from,
+            text,
+            timestamp: (new Date()).toString(),
+          },
+        });
+        commit('incrementPrivateUnreadCount', from);
+      });     
+    },
+
+    sendMessage({ state, dispatch, commit }, // eslint-disable-line no-unused-vars
+                { room, message }) {
+      
+      service.say(room, message);
+    },
+
+    closePrivateMessages({ commit }, // eslint-disable-line no-unused-vars
+                         { user }) {
+      commit('removePrivateTranscript', user);
+    },
+    
+    sendPrivateMessage({ state, dispatch, commit }, // eslint-disable-line no-unused-vars
+                       { user, message }) {
+      service.privmsg(user, message);
+      
+      commit('pushPrivateMessage',
              {
-               roomname,
+               user,
                message: {
-                 from: state.nick,
+                 from: state.self.id,
                  text: message,
                  timestamp: (new Date()).toString(),
                },

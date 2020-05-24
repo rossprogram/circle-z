@@ -1,7 +1,7 @@
 <template>
   <div>
     <span :class="{ actor: true, action: this.action, part: this.part, join: this.join}">
-      <span class="actor-name">{{ this.actor }}</span></span>
+      <span class="actor-name">{{ username }}</span></span>
     <span :class="{ message: true, action: this.action, part: this.part, join: this.join}">
       <span v-if="this.timestamp" class="timestamp">{{ new Date(this.timestamp) | moment }}</span>
       <Tex>{{ this.message ? this.message : this.action }}</Tex>
@@ -12,9 +12,21 @@
 <script>
 import Tex from '@/components/Tex';
 import moment from 'moment';
+import { mapState } from 'vuex';
 
 export default {
   name: 'ChatEvent',
+  computed: {
+    ...mapState(['users']),
+
+    username: {
+      get() {
+	if (this.users[this.actor]) return this.users[this.actor].username;
+	return 'unknown';
+      },
+    },
+  },
+	       
   props: {
     actor: String,
     message: String,

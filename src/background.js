@@ -6,6 +6,7 @@ import {
   createProtocol,
   /* installVueDevtools */
 } from 'vue-cli-plugin-electron-builder/lib';
+
 import store from './store';
 
 const isMac = process.platform === 'darwin';
@@ -165,10 +166,10 @@ app.on('ready', async () => {
   }
 
   createWindow();
-  store.dispatch('createClient');
-  store.dispatch('connectToIRC');
-});
 
+  store.dispatch('createClient');
+});
+           
 // Exit cleanly on request from parent process in development mode.
 if (isDevelopment) {
   if (process.platform === 'win32') {

@@ -2,6 +2,7 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 import About from '../views/About.vue';
 import Chat from '../views/Chat.vue';
+import PrivateChat from '../views/PrivateChat.vue';
 import RoomList from '../views/RoomList.vue';
 import UserList from '../views/UserList.vue';
 import Settings from '../views/Settings.vue';
@@ -20,11 +21,17 @@ const routes = [
     name: 'about',
     component: About,
   },
+  
   {
     path: '/rooms/:id',
-    name: 'chat',
+    name: 'room',
     component: Chat,
   },
+  {
+    path: '/users/:id',
+    name: 'user',
+    component: PrivateChat,
+  },  
 
   {
     path: '/rooms/:id/editor',

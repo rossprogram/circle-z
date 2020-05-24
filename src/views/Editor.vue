@@ -1,11 +1,13 @@
 <template>
-<Header :name="this.$route.params.id/editor">
+<Header :name="`${this.$route.params.id}/editor`">
   <splitpanes class="default-theme">
     <pane min-size="50" size="70" max-size="80">
-      <p>A codemirror editor!</p>
+      <textarea ref="textarea"></textarea>
     </pane>
     <pane size="20">
-      <p>Here is the output</p>
+      <div class="wysiwyg">
+	<Tex :key="content">{{ content }}</Tex>
+      </div>
     </pane>
   </splitpanes>
 </Header>
@@ -14,6 +16,15 @@
 <script>
 import { mapActions, mapState } from 'vuex';
 import Header from '@/components/Header.vue';
+import CodeMirror from 'codemirror/lib/codemirror';
+import 'codemirror/lib/codemirror.css';
+import Tex from '@/components/Tex';
+import { connectAutomergeDoc } from 'automerge-codemirror';
+import Automerge from 'automerge';
+
+// Make CodeMirror available globally so the modes' can register themselves.
+window.CodeMirror = CodeMirror;
+const stex = import('codemirror/mode/stex/stex'); // eslint-disable-line no-unused-vars
 
 export default {
   computed: {
@@ -22,7 +33,11 @@ export default {
 
   data() {
     return {
+      content: '',
+      codemirror: undefined,
       commandline: '',
+      document: undefined,
+      disconnectCodeMirror: undefined,
     };
   },
   
@@ -30,8 +45,52 @@ export default {
     ...mapActions(['join',
     ]),
 
-  },
+    connectCodeMirror() {
+      let options = {};
+      options = {
+	lineNumbers: true,
+	mode: 'stex',
+	matchBrackets: true,
+      };
 
+      this.codemirror =	CodeMirror.fromTextArea(this.$refs.textarea,
+						options);
+      
+      this.codemirror.setSize('100%', '100%');
+      
+      //this.codemirror.on('change', (cm) => {
+      //this.content = cm.getValue();
+      //});
+      this.document = Automerge.change(Automerge.init(), (doc) => {
+	doc.text = new Automerge.Text();
+      });
+	
+      const watchableDoc = new Automerge.WatchableDoc(this.document);
+      watchableDoc.registerHandler((x) => {
+	const currentDoc = Automerge.init();
+	const newDoc = x;
+	const changes = Automerge.getChanges(currentDoc, newDoc);
+
+	console.log(JSON.stringify(x));
+	console.log(JSON.stringify(changes));
+      });
+      
+      // Create a connect function linked to an Automerge document
+      const connectCodeMirror = connectAutomergeDoc(watchableDoc);
+
+
+      // Connect a CodeMirror instance
+      const getText = (doc) => doc.text;
+      this.disconnectCodeMirror = connectCodeMirror(this.codemirror, getText);
+    },
+
+    destroy() {
+      // garbage cleanup
+      const element = this.codemirror.doc.cm.getWrapperElement();
+      return element && element.remove && element.remove();
+    },
+  },
+  
   // Sometimes these are re-used, so between mounted and
   // beforeRouteUpdate we capture both possibilities
   beforeRouteUpdate(to, from, next) {
@@ -40,10 +99,18 @@ export default {
   },
   
   mounted() {
+    this.connectCodeMirror();
+    
     return this.join({ channel: this.$route.params.id });
+  },
+
+  beforeDestroy() {
+    this.disconnectCodeMirror();
+    this.destroy();
   },
   
   components: {
+    Tex,
     Header,
   },
   name: 'Editor',
@@ -52,6 +119,14 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.CodeMirror {
+  height: 100% !important;
+}
+
+.wysiwyg {
+font-family: "Computer Modern Serif";
+}  
+
   .user-list {
   height: 100%;
   padding-left: 6pt;

@@ -2,34 +2,33 @@
 <Header @refresh='refresh' :buttons="{ Refresh: 'sync' }" name="Rooms">
   <div class="search-panel">
     <span>
-      {{ filteredChannels.length }}
-      room{{ (filteredChannels.length === 1) ? '' : 's' }}
+      {{ filteredRooms.length }}
+      room{{ (filteredRooms.length === 1) ? '' : 's' }}
     </span><input v-model="search" type="search" placeholder="Search">
   </div>
   <div class="cards">
-    <div class="card-item" v-for="channel in filteredChannels" v-bind:key="channel">
-      <div class="card" @click="gotoChannel(channel)">
-	<span class="channel">
+    <div class="card-item" v-for="roomname in filteredRooms" v-bind:key="roomname">
+      <div class="card" @click="gotoRoom(roomname)">
+	<span class="room">
 	  <span class="hashes">
 	    <font-awesome-icon icon="hashtag"
-			       v-for="n in channel.replace(/[^#]/g,'').length" v-bind:key="n" />
-	  </span><span class="channel-name">{{ channel.replace(/#/g,'') }}</span>
+			       v-for="n in roomname.replace(/[^#]/g,'').length" v-bind:key="n" />
+	  </span><span class="room-name">{{ roomname.replace(/#/g,'') }}</span>
 	</span>
 	<span class="user-count">
-	  {{ userCounts[channel] }}
-	  {{ (userCounts[channel] === 1) ? 'person' : 'people' }}
-	  {{ (joinedChannels.indexOf(channel) >= 0) ? 'including you' : '' }}
+	  {{ rooms[roomname].users.length }}
+	  {{ (rooms[roomname].users.length === 1) ? 'person' : 'people' }}
+	  {{ (rooms[roomname].users.indexOf(self.id) >= 0) ? 'including you' : '' }}
 	</span>
-	<span class="topic">{{ topics[channel] }}</span>
       </div>
     </div>
-    <div v-if="newChannel" class="card-item" key="newChannel">
-      <div class="card" @click="gotoChannel(newChannel)">
-	<span class="channel">
+    <div v-if="newRoom" class="card-item" key="newRoom">
+      <div class="card" @click="gotoRoom(newRoom)">
+	<span class="room">
 	  <span class="hashes">
 	    <font-awesome-icon icon="hashtag"
-			       v-for="n in newChannel.replace(/[^#]/g,'').length" v-bind:key="n" />
-	  </span><span class="channel-name">{{ newChannel.replace(/#/g,'') }}</span>
+			       v-for="n in newRoom.replace(/[^#]/g,'').length" v-bind:key="n" />
+	  </span><span class="room-name">{{ newRoom.replace(/#/g,'') }}</span>
 	</span>
 	<span class="user-count">
 	  0 people.
@@ -57,9 +56,9 @@ export default {
   },
   
   computed: {
-    ...mapState(['channels', 'userCounts', 'topics', 'joinedChannels']),
+    ...mapState(['rooms', 'self']),
 
-    newChannel: {
+    newRoom: {
       get() {
 
 	if (this.search) {
@@ -70,7 +69,7 @@ export default {
 	    
 	    if (newName[0] !== '#') newName = `#${newName}`;
 
-	    if (this.filteredChannels.indexOf(newName) >= 0) return undefined;
+	    if (this.filteredRooms.indexOf(newName) >= 0) return undefined;
 	    
 	    return newName;
 	  }
@@ -80,12 +79,13 @@ export default {
       },
     },
     
-    filteredChannels: {
+    filteredRooms: {
       get() {
-	const nonemptyChannels = this.channels.filter((name) => this.userCounts[name] > 0);
+	const nonemptyRooms = Object.keys(this.rooms)
+	    .filter((name) => this.rooms[name].users.length > 0);
 	
-	return nonemptyChannels.filter(
-	  (name) => name.toLowerCase().match(this.search.toLowerCase()),
+	return nonemptyRooms.filter(
+	  (name) => name.toLowerCase().includes(this.search.toLowerCase()),
 	).sort();
       },
     },
@@ -97,8 +97,8 @@ export default {
       this.list();
     },
 
-    gotoChannel(channel) {
-      this.$router.push({ name: 'chat', params: { id: channel } });
+    gotoRoom(room) {
+      this.$router.push({ name: 'room', params: { id: room } });
     },
   },
 
@@ -154,7 +154,7 @@ margin: 6pt;
 width: 100%;
 }
 
-.channel {
+.room {
 font-size: 125%;
 border-bottom: 1px solid #ddd;
 margin-bottom: 6pt;
@@ -165,7 +165,7 @@ margin-bottom: 6pt;
     color: #777;
 }
 
-.channel-name {
+.room-name {
 font-weight: bold;
   margin-left: 2pt;
 }

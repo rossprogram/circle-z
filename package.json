@@ -1,7 +1,7 @@
 {
   "name": "circle-z",
-  "version": "0.6.0",
-  "description": "An IRC client for online math courses",
+  "version": "0.9.0",
+  "description": "A chat client for online math courses",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
@@ -25,7 +25,7 @@
     "automerge-codemirror": "^5.0.2",
     "codemirror": "^5.53.2",
     "core-js": "^3.6.4",
-    "irc-framework": "^4.8.1",
+    "json-socket-international": "^0.5.0",
     "mathjax-full": "^3.0.5",
     "moment": "^2.24.0",
     "splitpanes": "^2.2.1",

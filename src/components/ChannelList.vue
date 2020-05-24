@@ -19,26 +19,34 @@
     
     <h3>Rooms</h3>
     <ul>
-      <Channel v-for="channel in sortedJoinedChannels"
-	       :name="channel"
-	       v-bind:key="channel"
-	       :count="unreadCounts[channel]"/>
+      <router-link tag='li'
+		   v-for="room in sortedJoinedRooms"
+		   v-bind:key="room"
+		   :to="{ name: 'room', params: { id: room }}">
+	<Channel :name="room"
+		 v-bind:key="room"
+		 :count="unreadCounts[room]"/>
+      </router-link>
       <router-link tag='li' :to="{ name: 'rooms' }">
 	<a><font-awesome-icon icon="city" />
-	  rooms
+	  ROOMS
 	</a>
       </router-link>
     </ul>
     
     <h3>Private Messages</h3>
     <ul>
-      <Channel v-for="channel in sortedPrivateMessages"
-	       :name="channel"
-	       v-bind:key="channel"
-	       :count="unreadCounts[channel]"/>
+      <router-link tag='li'
+		   v-for="id in sortedPrivateMessages"
+		   v-bind:key="id"
+		   :to="{ name: 'user', params: { id: id }}">
+	<Channel :name="users[id].username"
+		 :count="privateUnreadCounts[id]"/>
+      </router-link>
+      
       <router-link tag='li' :to="{ name: 'users' }">
 	<a><font-awesome-icon icon="users" />
-	  people
+	  PEOPLE
 	</a>
       </router-link>
     </ul> 
@@ -47,12 +55,12 @@
     <ul>
       <router-link tag='li' :to="{ name: 'settings' }">
 	<a><font-awesome-icon icon="cog" />
-	  settings
+	  SETTINGS
 	</a>
       </router-link>
       <router-link tag='li' :to="{ name: 'about' }">
 	<a><font-awesome-icon icon="info-circle" />
-	  about
+	  ABOUT
 	</a>
       </router-link>
     </ul>
@@ -67,28 +75,40 @@ import Channel from './Channel.vue';
 export default {
   computed: {
     ...mapState(['server', 'connected', 'connecting',
-		 'unreadCounts', 'joinedChannels']),
+		 'unreadCounts', 'joinedRooms',
+		 'privateTranscripts', 'users', 'privateUnreadCounts',
+		]),
 
-    sortedJoinedChannels: {
+    sortedJoinedRooms: {
       get() {
-	// to perform a not-in-place sort
-	return this.joinedChannels.concat().sort().filter(this.isChannel);
+	return this.joinedRooms.concat()
+	  .sort((a, b) => {
+	    const la = a.toLowerCase();
+	    const lb = b.toLowerCase();
+	    if (la < lb) return -1;
+	    if (la > lb) return 1;
+	    return 0;
+	  });
       },
     },
 
     sortedPrivateMessages: {
       get() {
 	// to perform a not-in-place sort
-	return this.joinedChannels.concat().sort().filter((c) => !this.isChannel(c));
+	return Object.keys(this.privateTranscripts)
+	.filter((id) => this.users[id])
+	  .sort((a, b) => {
+	    const ua = this.users[a].usernames;
+	    const ub = this.users[b].usernames;
+	    if (ua < ub) return -1;
+	    if (ub < ua) return 1;
+	    return 0;
+	  });
       },
     },
   },
 
   methods: {
-    isChannel(name) {
-      if ((name[0] === '#') || (name[0] === '&')) return true;
-      return false;
-    },
   },
   
   name: 'ChannelList',
@@ -101,6 +121,19 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
+li {
+    padding: 6pt;
+}
+
+li.router-link-exact-active {
+    background-color: #45f;
+}
+
+
+  li a {
+    text-decoration: none;
+    color: white;
+}
 
 @keyframes pulse {
   0% { opacity: 1; }
@@ -184,10 +217,6 @@ li {
 }
 
 
-li.router-link-active {
-    background-color: #45f;
-}
-
 li svg {
     color: #aaa;
 }
@@ -195,7 +224,6 @@ li svg {
 li a {
 text-decoration: none;
 color: #fff;
-text-transform: uppercase;
 font-size: 8pt;
 }
 
