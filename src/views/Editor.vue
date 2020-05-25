@@ -119,6 +119,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
+
 .CodeMirror {
   height: 100% !important;
 }

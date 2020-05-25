@@ -37,6 +37,9 @@ const routes = [
     path: '/rooms/:id/editor',
     name: 'editor',
     component: Editor,
+    meta: {
+      fullscreen: true,
+    },
   },
 
   {

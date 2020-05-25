@@ -133,7 +133,7 @@ function handleMessage(socket, emitter, data) {
 
 export function connect(options) {
   const emitter = new CircleZEmitter();
-  
+
   const s = tls.connect({
     ca: [certificate],
     host: options.host,
@@ -144,7 +144,6 @@ export function connect(options) {
     const socket = theSocket;
 
     socket.on('message', (message) => {
-      console.log(message);
       if (message.error) {
         handleMessage(socket, emitter,
                       {
@@ -161,17 +160,22 @@ export function connect(options) {
       password: options.password,
       email: options.email,
     });
-
-    s.on('error', (err) => {
-      emitter.emit('error', err);
-    });
-    
-    s.on('end', () => {
-      console.log('server ends connection');
-      emitter.emit('disconnected');
-      theSocket = undefined;
-    });
   });
 
+  s.on('close', () => {
+    console.log('socket closed');
+    emitter.emit('disconnected');
+  });
+  
+  s.on('end', () => {
+    console.log('server ends connection');
+    emitter.emit('disconnected');
+  });
+  
+  s.on('error', (err) => {
+    emitter.emit('error', err);
+  });
+
+  
   return emitter;
 }

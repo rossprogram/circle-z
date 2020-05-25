@@ -1,7 +1,8 @@
 <template>
   <div>
     <Snackbar/>
-    <splitpanes class="default-theme">
+    <router-view v-if="$route.meta && $route.meta.fullscreen"/>
+    <splitpanes v-else class="default-theme">
       <pane min-size="10" size="20" max-size="40">
 	<ChannelList/>
       </pane>
@@ -28,7 +29,7 @@ export default {
   methods: {
     ...mapActions(['initialize']),
   },
-      
+
   created() {
     this.initialize();
   },

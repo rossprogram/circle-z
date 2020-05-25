@@ -29,7 +29,7 @@ export default new Vuex.Store({
     mumblePort: 64738,
     // mumbleServer: 'irc.rossprogram.org',
     
-    server: 'irc.rossprogram.org',
+    server: 'mumble.rossprogram.org',
     port: 7817,
     email: '',
     password: '',
@@ -47,7 +47,6 @@ export default new Vuex.Store({
         return `mumble://${username}:${password}@${state.server}:${state.mumblePort}/`;
       } 
         return `mumble://${state.server}:${state.mumblePort}/`;
-      
     },
   },
   
@@ -62,6 +61,7 @@ export default new Vuex.Store({
       state.connecting = false;
       state.connected = true;
     },
+    
     disconnected(state) {
       state.connecting = false;
       state.connected = false;
@@ -71,6 +71,7 @@ export default new Vuex.Store({
       state.rooms = {};
       state.roomnames = [];
     },
+    
     connecting(state) {
       state.connected = false;
       state.connecting = true;
