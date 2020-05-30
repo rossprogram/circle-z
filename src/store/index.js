@@ -1,7 +1,11 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import { createPersistedState, createSharedMutations } from 'vuex-electron';
+import DiffMatchPatch from 'diff-match-patch';
+import stringHash from 'string-hash';
 import * as service from '../services';
+
+const diffMatchPatch = new DiffMatchPatch();
 
 Vue.use(Vuex);
 
@@ -20,6 +24,9 @@ export default new Vuex.Store({
     
     roomnames: [],
     rooms: {},
+
+    documents: {},
+    shadows: {},
     
     counter: 1,
 
@@ -40,7 +47,6 @@ export default new Vuex.Store({
 
   getters: {
     mumbleUrl: (state) => {
-      console.log(state.self);
       if (state.self && state.self.username && state.self.mumblePassword) {
         const { username } = state.self;
         const password = state.self.mumblePassword;
@@ -60,6 +66,7 @@ export default new Vuex.Store({
       state.everConnected = true;
       state.connecting = false;
       state.connected = true;
+      state.shadows = {};
     },
     
     disconnected(state) {
@@ -188,6 +195,14 @@ export default new Vuex.Store({
       if (password !== undefined) state.password = password;
     },
 
+    setDocument(state, { id, text }) {
+      Vue.set(state.documents, id, text);
+    },
+
+    setShadow(state, { id, text }) {
+      if (state.shadows && state.shadows[id]) console.log('shadow was', stringHash(state.shadows[id]), 'and is now', stringHash(text));
+      Vue.set(state.shadows, id, text);
+    },    
   },
   
   actions: {
@@ -239,109 +254,6 @@ export default new Vuex.Store({
     initialize({ commit }) {
       commit('disconnected');
     },
-
-    /*
-    createClient({ dispatch, commit }) {
-      irc.on('users online', (event) => {
-        console.log('users online', event);
-      });
-
-      irc.on('whois', (event) => {
-        console.log('whois', event);
-      });
-
-
-      irc.on('join', (event) => {
-        commit('addJoinedUsers', {
-          channel: event.channel,
-          user: event.nick,
-        });
-        dispatch('appendToTranscript', {
-          roomname: event.channel,
-          message: {
-            from: event.nick,
-            join: true,
-            action: 'enters the room.',
-            timestamp: (new Date()).toString(),
-          },
-        });
-      });
-
-      irc.on('part', (event) => {
-        commit('removeJoinedUsers', {
-          channel: event.channel,
-          user: event.nick,
-        });
-        dispatch('appendToTranscript', {
-          roomname: event.channel,
-          message: {
-            from: event.nick,
-            part: true,
-            action: 'leaves the room.',
-            timestamp: (new Date()).toString(),
-          },
-        });
-      });
-      
-      irc.on('userlist', (event) => {
-        commit('setJoinedUsers', {
-          channel: event.channel,
-          users: event.users.map((u) => u.nick), 
-        });
-      });
-
-      
-      irc.on('message', (event) => {
-        console.log(event);
-
-        if (event.type === 'privmsg') {
-          if (event.target.match(/^#/)) {
-            dispatch('appendToTranscript', {
-              roomname: event.target,
-              message: {
-                from: event.nick,
-                text: event.message,
-                timestamp: (new Date()).toString(),
-              },
-            });
-          } else {
-            dispatch('appendToTranscript', {
-              roomname: event.nick,
-              message: {
-                from: event.nick,
-                text: event.message,
-                timestamp: (new Date()).toString(),
-              },
-            });
-            commit('addJoinedChannel', event.nick);
-          }
-        }
-
-        if (event.type === 'action') {
-          if (event.target.match(/^#/)) {
-            dispatch('appendToTranscript', {
-              roomname: event.target,
-              message: {
-                from: event.nick,
-                action: event.message,
-                timestamp: (new Date()).toString(),
-              },
-            });
-          } else {
-            dispatch('appendToTranscript', {
-              roomname: event.nick,
-              message: {
-                from: event.nick,
-                action: event.message,
-                timestamp: (new Date()).toString(),
-              },
-            });
-            commit('addJoinedChannel', event.nick);
-          }
-        }
-      });      
-    },
-    */
     
     connect({ state, dispatch, commit }) { // eslint-disable-line no-unused-vars
       commit('connecting');
@@ -402,7 +314,52 @@ export default new Vuex.Store({
           },
         });
         commit('incrementPrivateUnreadCount', from);
-      });     
+      });
+
+      server.on('setDocument', (id, text) => {
+        console.log('*setDocujment');
+        if (state.documents[id] !== text) commit('setDocument', { id, text });
+        commit('setShadow', { id, text });        
+      });
+
+      server.on('getDocument', (id) => {
+        console.log('*getDocujment');
+        service.setDocument(id, state.documents[id]);
+        commit('setShadow', { id, text: state.documents[id] });
+      });
+      
+      server.on('patchDocument', (id, patch, checksum) => {
+        console.log('*patchDocujment');
+        console.log('patch document[', id, '] with ', patch);
+        const patches = diffMatchPatch.patch_fromText(patch);
+        const document = state.documents[id] || '';
+        const shadow = state.shadows[id] || '';
+        
+	// Confirm that our shadow matched their shadow        
+        if (stringHash(shadow) === checksum) {
+          // fuzzypatch the true state
+          const applied = diffMatchPatch.patch_apply(patches, document);
+          // if the patch applied cleanly...
+          if (applied[1].every((x) => x)) {
+            const text = applied[0];
+            commit('setDocument', {
+              id,
+              text,
+            });
+          } else {
+            console.log('patch did not apply cleanly. oh well.');
+          }
+
+          commit('setShadow', {
+            id,
+            text: diffMatchPatch.patch_apply(patches, shadow)[0],
+          });
+        } else {
+          service.getDocument(id);
+        }
+
+        // FIXME: check if we have any more updates to send?
+      });
     },
 
     sendMessage({ state, dispatch, commit }, // eslint-disable-line no-unused-vars
@@ -430,6 +387,35 @@ export default new Vuex.Store({
                },
              });
     },
+
+    fetchDocument({ commit }, // eslint-disable-line no-unused-vars
+                  id) {
+      service.getDocument(id);
+    },
+    
+    updateDocument({ state, dispatch, commit }, // eslint-disable-line no-unused-vars
+                   { id, text }) {
+      if (state.documents[id] === undefined) return;
+      
+      // We are not permitted to update a document until AFTER an initial fetchDocument      
+      if (state.shadows[id] === undefined) return;
+        
+      //if (state.documents[id] === text) return;
+
+      if (state.documents[id] !== text) {
+        commit('setDocument', { id, text });
+      }
+      
+      const shadow = state.shadows[id] || '';
+        
+      const patch = diffMatchPatch.patch_toText(diffMatchPatch.patch_make(shadow, text));
+        
+      if (patch !== '') {
+        service.patchDocument(id, patch, stringHash(shadow));
+        commit('setShadow', { id, text });
+      }
+    },
+
   },
 
   modules: {

@@ -78,6 +78,31 @@ export function privmsg(user, text) {
   });
 }
 
+export function getDocument(id) {
+  theSocket.sendMessage({
+    type: 'getServerDocument',
+    id,
+  });
+}
+
+export function patchDocument(id, patch, checksum) {
+  console.log('Patching document with shadow checksum', checksum);
+  theSocket.sendMessage({
+    type: 'patchServerDocument',
+    id,
+    patch,
+    checksum,
+  });
+}
+
+export function setDocument(id, text) {
+  theSocket.sendMessage({
+    type: 'setServerDocument',
+    id,
+    text,
+  });
+}
+
 function error(socket, emitter, data) {
   emitter.emit('error', data.error);
 }
@@ -107,6 +132,18 @@ function onPrivmsg(socket, emitter, data) {
   emitter.emit('privmsg', data.from, data.text);
 }
 
+function setClientDocument(socket, emitter, data) {
+  emitter.emit('setDocument', data.id, data.text);
+}
+
+function patchClientDocument(socket, emitter, data) {
+  emitter.emit('patchDocument', data.id, data.patch, data.checksum);
+}
+
+function getClientDocument(socket, emitter, data) {
+  emitter.emit('getDocument', data.id);
+}
+
 const callbacks = {
   error,
   login,
@@ -115,6 +152,9 @@ const callbacks = {
   rooms,
   say: onSay,
   privmsg: onPrivmsg,
+  setClientDocument,
+  patchClientDocument,
+  getClientDocument,
 };
 
 function handleMessage(socket, emitter, data) {

@@ -1,12 +1,13 @@
 <template>
-<Header :name="`${this.$route.params.id}/editor`">
+<Header :name="`${this.$route.params.id}/editor`"
+	@leave='leave'
+	:buttons="{ Leave: 'sign-out-alt' }">
   <splitpanes class="default-theme">
     <pane min-size="50" size="70" max-size="80">
-      <textarea ref="textarea"></textarea>
+      <div id="editor"></div>
     </pane>
     <pane size="20">
       <div class="wysiwyg">
-	<Tex :key="content">{{ content }}</Tex>
       </div>
     </pane>
   </splitpanes>
@@ -16,101 +17,141 @@
 <script>
 import { mapActions, mapState } from 'vuex';
 import Header from '@/components/Header.vue';
-import CodeMirror from 'codemirror/lib/codemirror';
-import 'codemirror/lib/codemirror.css';
-import Tex from '@/components/Tex';
-import { connectAutomergeDoc } from 'automerge-codemirror';
-import Automerge from 'automerge';
+import ace from 'ace-builds/src-noconflict/ace';
+import 'ace-builds/src-min-noconflict/theme-chrome';
+import 'ace-builds/src-min-noconflict/mode-latex';
+import DiffMatchPatch from 'diff-match-patch';
+import { AceMultiCursorManager } from '@convergencelabs/ace-collab-ext';
+import '@convergencelabs/ace-collab-ext/css/ace-collab-ext.css';
+import { debounce } from 'underscore';
 
-// Make CodeMirror available globally so the modes' can register themselves.
-window.CodeMirror = CodeMirror;
-const stex = import('codemirror/mode/stex/stex'); // eslint-disable-line no-unused-vars
+const { Range } = ace;
+const diffMatchPatch = new DiffMatchPatch();
 
 export default {
   computed: {
-    ...mapState(['transcripts', 'joinedUsers']),
+    ...mapState(['documents']),
+
+    document: {
+      get() {
+	return this.documents[this.$route.params.id];
+      },
+    },
   },
 
   data() {
     return {
-      content: '',
-      codemirror: undefined,
-      commandline: '',
-      document: undefined,
-      disconnectCodeMirror: undefined,
+      contentBackup: '',
+      editor: undefined,
+      cursorManager: undefined,
     };
   },
   
   methods: {
-    ...mapActions(['join',
+    ...mapActions(['updateDocument', 'fetchDocument',
     ]),
 
-    connectCodeMirror() {
-      let options = {};
-      options = {
-	lineNumbers: true,
-	mode: 'stex',
-	matchBrackets: true,
-      };
-
-      this.codemirror =	CodeMirror.fromTextArea(this.$refs.textarea,
-						options);
-      
-      this.codemirror.setSize('100%', '100%');
-      
-      //this.codemirror.on('change', (cm) => {
-      //this.content = cm.getValue();
-      //});
-      this.document = Automerge.change(Automerge.init(), (doc) => {
-	doc.text = new Automerge.Text();
-      });
-	
-      const watchableDoc = new Automerge.WatchableDoc(this.document);
-      watchableDoc.registerHandler((x) => {
-	const currentDoc = Automerge.init();
-	const newDoc = x;
-	const changes = Automerge.getChanges(currentDoc, newDoc);
-
-	console.log(JSON.stringify(x));
-	console.log(JSON.stringify(changes));
-      });
-      
-      // Create a connect function linked to an Automerge document
-      const connectCodeMirror = connectAutomergeDoc(watchableDoc);
-
-
-      // Connect a CodeMirror instance
-      const getText = (doc) => doc.text;
-      this.disconnectCodeMirror = connectCodeMirror(this.codemirror, getText);
+    destroy() {
+      this.editor.destroy();
     },
 
-    destroy() {
-      // garbage cleanup
-      const element = this.codemirror.doc.cm.getWrapperElement();
-      return element && element.remove && element.remove();
+    leave() {
+      this.$router.push({ name: 'rooms' });
     },
   },
   
   // Sometimes these are re-used, so between mounted and
   // beforeRouteUpdate we capture both possibilities
   beforeRouteUpdate(to, from, next) {
-    this.join({ channel: to.params.id });
+    //this.join({ channel: to.params.id });
     next();
+  },
+
+  watch: {
+    document() {
+      if (this.editor) {
+	//console.log('oldval', oldval);
+	//console.log('newval', newval);
+	//this.contentBackup = this.editor.getSession().getValue();
+	//console.log('contentBAckup=', this.contentBackup);
+	console.log('document=', this.document);
+	const diff = diffMatchPatch.diff_main(this.contentBackup, this.document, true);
+
+	const doc = this.editor.getSession().getDocument();
+	console.log('diff=', diff);
+	// https://stackoverflow.com/questions/25083183/how-can-i-get-and-patch-diffs-in-ace-editor
+	let offset = 0;
+	diff.forEach((chunk) => {
+	  const op = chunk[0];
+	  const text = chunk[1];
+	  
+	  if (op === 0) {
+            offset += text.length;
+	  } else if (op === -1) {
+            doc.remove(Range.fromPoints(
+              doc.indexToPosition(offset),
+              doc.indexToPosition(offset + text.length),
+            ));
+	  } else if (op === 1) {
+            doc.insert(doc.indexToPosition(offset), text);
+            offset += text.length;
+	  }
+	});
+	  
+	this.contentBackup = this.document;
+	//this.contentBackup = this.editor.getSession().getValue();
+	  // FIXME: figure out if the changes were before or after the cursor position
+	//const position = this.editor.getCursorPosition();
+	//this.editor.setValue(this.document, 1);
+	//this.editor.moveCursorToPosition(position);
+	  
+	//console.log(this.editor.getValue(), this.document);
+      }
+    },
   },
   
   mounted() {
-    this.connectCodeMirror();
+    window.Range = Range;
     
-    return this.join({ channel: this.$route.params.id });
+    this.fetchDocument(this.$route.params.id);
+    
+    this.editor = ace.edit('editor');
+    this.editor.setTheme('ace/theme/chrome');
+    this.editor.session.setMode('ace/mode/latex');
+    this.editor.resize();
+
+    this.editor.setValue(this.document, -1);
+    this.contentBackup = this.document;
+    this.editor.focus();
+    
+    this.cursorManager = new AceMultiCursorManager(this.editor.getSession());
+
+    // Add a new remote cursor with an id of "uid1", and a color of orange.
+    this.cursorManager.addCursor('uid1', 'User 1', 'orange', { row: 0, column: 0 });
+    console.log(this.cursorManager);
+    
+    this.editor.on('change', debounce((e) => {
+      console.log('change', e);
+      
+      const content = this.editor.getValue();
+      console.log('content', content);
+      if (this.document !== content) {
+	this.updateDocument({
+	  id: this.$route.params.id,
+	  text: content, 
+	});
+      }
+      
+      this.contentBackup = content;
+    }, 10));
+
   },
 
   beforeDestroy() {
-    this.disconnectCodeMirror();
     this.destroy();
   },
   
   components: {
-    Tex,
     Header,
   },
   name: 'Editor',
@@ -120,9 +161,10 @@ export default {
 
 <style scoped lang="scss">
 
-.CodeMirror {
+  #editor {
   height: 100% !important;
-}
+  width: 100%;
+  }
 
 .wysiwyg {
 font-family: "Computer Modern Serif";

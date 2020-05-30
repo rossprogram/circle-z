@@ -83,8 +83,8 @@ export default {
       get() {
 	return this.joinedRooms.concat()
 	  .sort((a, b) => {
-	    const la = a.toLowerCase();
-	    const lb = b.toLowerCase();
+	    const la = a && a.toLowerCase();
+	    const lb = b && b.toLowerCase();
 	    if (la < lb) return -1;
 	    if (la > lb) return 1;
 	    return 0;
