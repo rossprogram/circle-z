@@ -538,6 +538,7 @@ canvas {
   background: white;
   box-shadow: 0px 0px 15px 5px #222;
   touch-action: none;
+    margin: auto;
 }
 
 #desktop {
@@ -547,8 +548,6 @@ canvas {
   height: 100%;
   background: #555;
   display: flex; 
-  align-items: center;
-  justify-content: center;
 }
 
 #toolbar {
