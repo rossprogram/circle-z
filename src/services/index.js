@@ -86,7 +86,6 @@ export function getDocument(id) {
 }
 
 export function patchDocument(id, patch, checksum) {
-  console.log('Patching document with shadow checksum', checksum);
   theSocket.sendMessage({
     type: 'patchServerDocument',
     id,
@@ -100,6 +99,77 @@ export function setDocument(id, text) {
     type: 'setServerDocument',
     id,
     text,
+  });
+}
+
+export function setDocumentCursor(id, cursor) {
+  theSocket.sendMessage({
+    type: 'setServerDocumentCursor',
+    id,
+    cursor,
+  });
+}
+
+export function setDocumentSelection(id, range) {
+  theSocket.sendMessage({
+    type: 'setServerDocumentSelection',
+    id,
+    range,
+  });
+}
+
+export function setBlackboardPointer(id, position) {
+  theSocket.sendMessage({
+    type: 'setBlackboardPointer',
+    id,
+    x: position.x,
+    y: position.y,
+  });
+}
+
+export function getBlackboard(id) {
+  theSocket.sendMessage({
+    type: 'getBlackboard',
+    id,
+  });
+}
+
+export function setBlackboardPdf(id, pdf) {
+  theSocket.sendMessage({
+    type: 'setBlackboardPdf',
+    id,
+    pdf: Buffer.from(pdf).toString('base64'),
+  });
+}
+
+export function addBlackboardInk(id, uuid, points) {
+  theSocket.sendMessage({
+    type: 'addBlackboardInk',
+    id,
+    uuid,
+    points,
+  });
+}
+
+export function clearBlackboardInk(id) {
+  theSocket.sendMessage({
+    type: 'clearBlackboardInk',
+    id,
+  });
+}
+
+export function clearBlackboardPdf(id) {
+  theSocket.sendMessage({
+    type: 'clearBlackboardPdf',
+    id,
+  });
+}
+
+export function setBlackboardPage(id, page) {
+  theSocket.sendMessage({
+    type: 'setBlackboardPage',
+    id,
+    page,
   });
 }
 
@@ -136,12 +206,37 @@ function setClientDocument(socket, emitter, data) {
   emitter.emit('setDocument', data.id, data.text);
 }
 
+function setClientDocumentCursor(socket, emitter, data) {
+  emitter.emit('setDocumentCursor', data.id, data.userId, data.cursor);
+}
+
+function setClientDocumentSelection(socket, emitter, data) {
+  emitter.emit('setDocumentSelection', data.id, data.userId, data.range);
+}
+
 function patchClientDocument(socket, emitter, data) {
   emitter.emit('patchDocument', data.id, data.patch, data.checksum);
 }
 
 function getClientDocument(socket, emitter, data) {
   emitter.emit('getDocument', data.id);
+}
+
+function setBlackboard(socket, emitter, data) {
+  const update = data;
+  if (data.pdf !== undefined) {
+    update.pdf = Buffer.from(data.pdf, 'base64');
+  }
+  
+  emitter.emit('updateBlackboard', data.id, update);
+}
+
+function onAddBlackboardInk(socket, emitter, data) {
+  emitter.emit('addBlackboardInk', data.id, data.artist, data.uuid, data.points);
+}
+
+function onSetBlackboardPointer(socket, emitter, data) {
+  emitter.emit('setBlackboardPointer', data.id, data.user, { x: data.x, y: data.y });
 }
 
 const callbacks = {
@@ -152,9 +247,16 @@ const callbacks = {
   rooms,
   say: onSay,
   privmsg: onPrivmsg,
+  
   setClientDocument,
   patchClientDocument,
   getClientDocument,
+  setClientDocumentCursor,
+  setClientDocumentSelection,
+  
+  setBlackboard,
+  addBlackboardInk: onAddBlackboardInk,
+  setBlackboardPointer: onSetBlackboardPointer,
 };
 
 function handleMessage(socket, emitter, data) {

@@ -2,7 +2,8 @@
 <Header :name="this.$route.params.id"
 	@leave='leave'
 	@editor='editor'
-	:buttons="{ Editor: 'pencil-alt', Leave: 'sign-out-alt' }">
+	@blackboard='blackboard'
+	:buttons="{ Blackboard: 'chalkboard', Editor: 'pencil-alt', Leave: 'sign-out-alt' }">
   <splitpanes class="default-theme">
     <pane min-size="50" size="70" max-size="80">
       <div class="chat">
@@ -91,6 +92,13 @@ export default {
     editor() {
       this.$router.push({
 	name: 'editor',
+	params: { id: this.$route.params.id }, 
+      });
+    },
+
+    blackboard() {
+      this.$router.push({
+	name: 'blackboard',
 	params: { id: this.$route.params.id }, 
       });
     },

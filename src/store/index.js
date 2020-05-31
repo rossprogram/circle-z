@@ -27,6 +27,11 @@ export default new Vuex.Store({
 
     documents: {},
     shadows: {},
+    cursors: {},
+    selections: {},
+    
+    blackboards: {},
+    pointers: {},
     
     counter: 1,
 
@@ -67,6 +72,8 @@ export default new Vuex.Store({
       state.connecting = false;
       state.connected = true;
       state.shadows = {};
+      state.cursors = {};
+      state.selections = {};
     },
     
     disconnected(state) {
@@ -185,7 +192,7 @@ export default new Vuex.Store({
         Vue.set(state.privateUnreadCounts, id, 1);
       }
     },
-    
+
     setServerParameters(state, {
       server, port, password, email, 
     }) {
@@ -199,10 +206,57 @@ export default new Vuex.Store({
       Vue.set(state.documents, id, text);
     },
 
+    setDocumentCursor(state, { id, userId, cursor }) {
+      if (state.cursors[id] === undefined) {
+        Vue.set(state.cursors, id, {});
+      }
+      Vue.set(state.cursors[id], userId, cursor);
+      console.log(state.cursors[id]);
+    },
+
+    setDocumentSelection(state, { id, userId, range }) {
+      if (state.selections[id] === undefined) {
+        Vue.set(state.selections, id, {});
+      }
+      Vue.set(state.selections[id], userId, range);
+    },
+
     setShadow(state, { id, text }) {
       if (state.shadows && state.shadows[id]) console.log('shadow was', stringHash(state.shadows[id]), 'and is now', stringHash(text));
       Vue.set(state.shadows, id, text);
-    },    
+    },
+
+    updateBlackboard(state, { id, update }) {
+      if (state.blackboards[id] === undefined) {
+        Vue.set(state.blackboards, id, { ink: [] });
+      }
+
+      if (update.page !== undefined) Vue.set(state.blackboards[id], 'page', update.page);
+
+      if (update.ink !== undefined) Vue.set(state.blackboards[id], 'ink', update.ink);
+
+      if (update.presenter !== undefined) Vue.set(state.blackboards[id], 'presenter', update.presenter);
+
+      if (update.pdf !== undefined) Vue.set(state.blackboards[id], 'pdf', update.pdf);
+    },
+
+    addBlackboardInk(state, {
+      id, artist, uuid, points, 
+    }) { // eslint-disable-line no-unused-vars
+      if (state.blackboards[id] === undefined) {
+        Vue.set(state.blackboards, id, { ink: [] });
+      }
+
+      state.blackboards[id].ink.push({ artist, uuid, points });
+    },
+    
+    setBlackboardPointer(state, { id, user, position }) {
+      if (state.pointers[id] === undefined) {
+        Vue.set(state.pointers, id, { });
+      }
+
+      Vue.set(state.pointers[id], user, position);
+    },
   },
   
   actions: {
@@ -317,20 +371,56 @@ export default new Vuex.Store({
       });
 
       server.on('setDocument', (id, text) => {
-        console.log('*setDocujment');
         if (state.documents[id] !== text) commit('setDocument', { id, text });
         commit('setShadow', { id, text });        
       });
 
       server.on('getDocument', (id) => {
-        console.log('*getDocujment');
         service.setDocument(id, state.documents[id]);
         commit('setShadow', { id, text: state.documents[id] });
       });
+
+      server.on('setDocumentCursor', (id, userId, cursor) => {
+        commit('setDocumentCursor', { id, userId, cursor });
+      });
+
+      server.on('setDocumentSelection', (id, userId, range) => {
+        commit('setDocumentSelection', { id, userId, range });
+      });
+
+      server.on('updateBlackboard', (id, update) => {
+        const changes = {};
+        
+        if (update.page !== undefined) {
+          changes.page = update.page;
+        }
+
+        if (update.ink !== undefined) {
+          changes.ink = update.ink;
+        }
+
+        if (update.presenter !== undefined) {
+          changes.presenter = update.presenter;
+        }
+        
+        if (update.pdf !== undefined) {
+          changes.pdf = update.pdf;
+        }
+
+        commit('updateBlackboard', { id, update: changes });
+      });
+
+      server.on('addBlackboardInk', (id, artist, uuid, points) => {
+        commit('addBlackboardInk', {
+          id, artist, uuid, points, 
+        });
+      });
+
+      server.on('setBlackboardPointer', (id, user, position) => {
+        commit('setBlackboardPointer', { id, user, position });
+      });
       
       server.on('patchDocument', (id, patch, checksum) => {
-        console.log('*patchDocujment');
-        console.log('patch document[', id, '] with ', patch);
         const patches = diffMatchPatch.patch_fromText(patch);
         const document = state.documents[id] || '';
         const shadow = state.shadows[id] || '';
@@ -357,8 +447,6 @@ export default new Vuex.Store({
         } else {
           service.getDocument(id);
         }
-
-        // FIXME: check if we have any more updates to send?
       });
     },
 
@@ -390,7 +478,20 @@ export default new Vuex.Store({
 
     fetchDocument({ commit }, // eslint-disable-line no-unused-vars
                   id) {
-      service.getDocument(id);
+      console.log('should fetch', id);
+      //service.getDocument(id);
+    },
+
+    updateDocumentCursor({ state, commit },
+                         { id, cursor }) {
+      service.setDocumentCursor(id, cursor);
+      commit('setDocumentCursor', { id, userId: state.self.id, cursor });
+    },
+
+    updateDocumentSelection({ state, commit }, 
+                            { id, range }) {
+      service.setDocumentSelection(id, range);
+      commit('setDocumentSelection', { id, userId: state.self.id, range });
     },
     
     updateDocument({ state, dispatch, commit }, // eslint-disable-line no-unused-vars
@@ -400,8 +501,6 @@ export default new Vuex.Store({
       // We are not permitted to update a document until AFTER an initial fetchDocument      
       if (state.shadows[id] === undefined) return;
         
-      //if (state.documents[id] === text) return;
-
       if (state.documents[id] !== text) {
         commit('setDocument', { id, text });
       }
@@ -415,6 +514,42 @@ export default new Vuex.Store({
         commit('setShadow', { id, text });
       }
     },
+
+    updateBlackboardPointer({ state, commit }, // eslint-disable-line no-unused-vars
+                            { id, position }) {
+      service.setBlackboardPointer(id, position);
+    },
+
+    fetchBlackboard({ state, commit }, // eslint-disable-line no-unused-vars
+                    id) {
+      service.getBlackboard(id);
+    },
+
+    setBlackboardPdf({ state, commit }, // eslint-disable-line no-unused-vars
+                     { id, pdf }) {
+      service.setBlackboardPdf(id, pdf);
+    },
+
+    addBlackboardInk({ state, commit }, // eslint-disable-line no-unused-vars
+                     { id, uuid, points }) {
+      service.addBlackboardInk(id, uuid, points);
+    },
+
+    clearBlackboardInk({ state, commit }, // eslint-disable-line no-unused-vars
+                       { id }) {
+      service.clearBlackboardInk(id);
+    },
+
+    clearBlackboardPdf({ state, commit }, // eslint-disable-line no-unused-vars
+                       { id }) {
+      service.clearBlackboardPdf(id);
+    },
+
+    updateBlackboardPage({ state, commit }, // eslint-disable-line no-unused-vars
+                         { id, page }) {
+      service.setBlackboardPage(id, page);
+    },
+
 
   },
 

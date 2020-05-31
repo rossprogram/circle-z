@@ -2,8 +2,9 @@ import Vue from 'vue';
 import { Splitpanes, Pane } from 'splitpanes';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
-  faCog, faCity, faHashtag, faExclamationTriangle, faSync,
+  faFilePdf, faChalkboard, faCog, faCity, faHashtag, faExclamationTriangle, faSync,
   faInfoCircle, faSignOutAlt, faSignInAlt, faExchangeAlt, faUsers, faPencilAlt, faVideo,
+  faStepForward, faStepBackward, faEraser,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import App from './App.vue';
@@ -13,11 +14,16 @@ import store from './store';
 import 'splitpanes/dist/splitpanes.css';
 
 library.add(faCog,
+            faFilePdf,
             faCity,
             faHashtag,
             faExclamationTriangle,
             faExchangeAlt,
+            faEraser,
             faSync,
+            faStepForward,
+            faStepBackward,
+            faChalkboard,
             faInfoCircle,
             faSignOutAlt,
             faSignInAlt,

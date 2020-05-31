@@ -21,20 +21,42 @@ import ace from 'ace-builds/src-noconflict/ace';
 import 'ace-builds/src-min-noconflict/theme-chrome';
 import 'ace-builds/src-min-noconflict/mode-latex';
 import DiffMatchPatch from 'diff-match-patch';
-import { AceMultiCursorManager } from '@convergencelabs/ace-collab-ext';
+import { AceMultiCursorManager, AceMultiSelectionManager, AceRangeUtil } from '@convergencelabs/ace-collab-ext';
 import '@convergencelabs/ace-collab-ext/css/ace-collab-ext.css';
 import { debounce } from 'underscore';
+import stringHash from 'string-hash';
 
 const { Range } = ace;
 const diffMatchPatch = new DiffMatchPatch();
 
+// https://stackoverflow.com/questions/3426404/create-a-hexadecimal-colour-based-on-a-string-with-javascript
+function stringToColor(str) {
+  const hash = stringHash(str);
+  let colour = '#';
+  for (let i = 0; i < 3; i += 1) {
+    const value = (hash >> (i * 8)) & 0xFF; // eslint-disable-line no-bitwise
+    colour += (`00${value.toString(16)}`).substr(-2);
+  }
+  return colour;
+}
+
 export default {
   computed: {
-    ...mapState(['documents']),
+    ...mapState(['documents', 'cursors', 'selections', 'users', 'connected']),
 
     document: {
       get() {
 	return this.documents[this.$route.params.id];
+      },
+    },
+    documentCursors: {
+      get() {
+	return this.cursors[this.$route.params.id];
+      },
+    },
+    documentSelections: {
+      get() {
+	return this.selections[this.$route.params.id];
       },
     },
   },
@@ -49,6 +71,7 @@ export default {
   
   methods: {
     ...mapActions(['updateDocument', 'fetchDocument',
+		   'updateDocumentCursor', 'updateDocumentSelection', 
     ]),
 
     destroy() {
@@ -68,51 +91,75 @@ export default {
   },
 
   watch: {
-    document() {
-      if (this.editor) {
-	//console.log('oldval', oldval);
-	//console.log('newval', newval);
-	//this.contentBackup = this.editor.getSession().getValue();
-	//console.log('contentBAckup=', this.contentBackup);
-	console.log('document=', this.document);
-	const diff = diffMatchPatch.diff_main(this.contentBackup, this.document, true);
+    connected(isConnected) {
+      this.editor.setReadOnly(!isConnected);
+    },
+    
+    documentCursors: {
+      deep: true,
+      handler(value) {
+      console.log('cursors', value);
+      Object.keys(value).forEach((userId) => {      
+	const cursor = value[userId];
+	try {
+	  this.cursorManager.setCursor(userId, cursor);
+	} catch (e) {
+	  this.cursorManager.addCursor(userId,
+				       this.users[userId].username,
+				       stringToColor(this.users[userId].username),
+				       cursor);
+	}
+      });
+      },
+    },
 
-	const doc = this.editor.getSession().getDocument();
-	console.log('diff=', diff);
-	// https://stackoverflow.com/questions/25083183/how-can-i-get-and-patch-diffs-in-ace-editor
-	let offset = 0;
-	diff.forEach((chunk) => {
-	  const op = chunk[0];
-	  const text = chunk[1];
-	  
-	  if (op === 0) {
-            offset += text.length;
-	  } else if (op === -1) {
-            doc.remove(Range.fromPoints(
-              doc.indexToPosition(offset),
-              doc.indexToPosition(offset + text.length),
-            ));
-	  } else if (op === 1) {
-            doc.insert(doc.indexToPosition(offset), text);
-            offset += text.length;
+    documentSelections: {
+      deep: true,
+      handler(value) {
+	Object.keys(value).forEach((userId) => {
+	  const range = value[userId];
+	  try {
+	    this.selectionManager.setSelection(userId,
+					       [AceRangeUtil.fromJson(range)]);
+	  } catch (e) {
+	    this.selectionManager.addSelection(userId,
+					       this.users[userId].username,
+					       stringToColor(this.users[userId].username),
+					       [AceRangeUtil.fromJson(range)]);
 	  }
 	});
+      },
+    },
+    
+    document() {
+      const diff = diffMatchPatch.diff_main(this.contentBackup, this.document, true);
+
+      const doc = this.editor.getSession().getDocument();
+
+      // https://stackoverflow.com/questions/25083183/how-can-i-get-and-patch-diffs-in-ace-editor
+      let offset = 0;
+      diff.forEach((chunk) => {
+	const op = chunk[0];
+	const text = chunk[1];
 	  
-	this.contentBackup = this.document;
-	//this.contentBackup = this.editor.getSession().getValue();
-	  // FIXME: figure out if the changes were before or after the cursor position
-	//const position = this.editor.getCursorPosition();
-	//this.editor.setValue(this.document, 1);
-	//this.editor.moveCursorToPosition(position);
-	  
-	//console.log(this.editor.getValue(), this.document);
-      }
+	if (op === 0) {
+          offset += text.length;
+	} else if (op === -1) {
+          doc.remove(Range.fromPoints(
+            doc.indexToPosition(offset),
+            doc.indexToPosition(offset + text.length),
+          ));
+	} else if (op === 1) {
+          doc.insert(doc.indexToPosition(offset), text);
+          offset += text.length;
+	}
+      });
+      
+      this.contentBackup = this.document;
     },
   },
   
   mounted() {
-    window.Range = Range;
-    
     this.fetchDocument(this.$route.params.id);
     
     this.editor = ace.edit('editor');
@@ -125,16 +172,10 @@ export default {
     this.editor.focus();
     
     this.cursorManager = new AceMultiCursorManager(this.editor.getSession());
+    this.selectionManager = new AceMultiSelectionManager(this.editor.getSession());
 
-    // Add a new remote cursor with an id of "uid1", and a color of orange.
-    this.cursorManager.addCursor('uid1', 'User 1', 'orange', { row: 0, column: 0 });
-    console.log(this.cursorManager);
-    
-    this.editor.on('change', debounce((e) => {
-      console.log('change', e);
-      
+    this.editor.on('change', debounce(() => {
       const content = this.editor.getValue();
-      console.log('content', content);
       if (this.document !== content) {
 	this.updateDocument({
 	  id: this.$route.params.id,
@@ -143,8 +184,25 @@ export default {
       }
       
       this.contentBackup = content;
-    }, 10));
+    }, 50 /* milliseconds debounce */));
 
+    // Emitted when the cursor position changes.
+    this.editor.getSelection().on('changeCursor', debounce(() => {
+      const cursor = this.editor.getSelection().getCursor();
+      this.updateDocumentCursor({
+	id: this.$route.params.id,
+	cursor,
+      });
+    }, 50 /* milliseconds debounce */));
+
+    // Emitted when the selection changes.
+    this.editor.getSelection().on('changeSelection', debounce(() => {
+      const range = this.editor.getSelection().getRange();
+      this.updateDocumentSelection({
+	id: this.$route.params.id,
+	range,
+      });
+    }, 50 /* milliseconds debounce */));
   },
 
   beforeDestroy() {

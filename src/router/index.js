@@ -7,6 +7,7 @@ import RoomList from '../views/RoomList.vue';
 import UserList from '../views/UserList.vue';
 import Settings from '../views/Settings.vue';
 import Editor from '../views/Editor.vue';
+import Blackboard from '../views/Blackboard.vue';
 import Video from '../views/Video.vue';
 
 Vue.use(VueRouter);
@@ -33,6 +34,15 @@ const routes = [
     component: PrivateChat,
   },  
 
+  {
+    path: '/rooms/:id/blackboard',
+    name: 'blackboard',
+    component: Blackboard,
+    meta: {
+      fullscreen: true,
+    },
+  },
+  
   {
     path: '/rooms/:id/editor',
     name: 'editor',
