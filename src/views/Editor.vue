@@ -26,6 +26,8 @@ import '@convergencelabs/ace-collab-ext/css/ace-collab-ext.css';
 import { debounce } from 'underscore';
 import stringHash from 'string-hash';
 
+const { getCurrentWindow } = require('electron').remote;
+
 const { Range } = ace;
 const diffMatchPatch = new DiffMatchPatch();
 
@@ -42,7 +44,7 @@ function stringToColor(str) {
 
 export default {
   computed: {
-    ...mapState(['documents', 'cursors', 'selections', 'users', 'connected']),
+    ...mapState(['documents', 'cursors', 'selections', 'users', 'self', 'connected']),
 
     document: {
       get() {
@@ -79,7 +81,8 @@ export default {
     },
 
     leave() {
-      this.$router.push({ name: 'rooms' });
+      const browserWindow = getCurrentWindow();
+      browserWindow.close();
     },
   },
   
@@ -99,16 +102,18 @@ export default {
       deep: true,
       handler(value) {
       console.log('cursors', value);
-      Object.keys(value).forEach((userId) => {      
-	const cursor = value[userId];
-	try {
-	  this.cursorManager.setCursor(userId, cursor);
-	} catch (e) {
-	  this.cursorManager.addCursor(userId,
-				       this.users[userId].username,
-				       stringToColor(this.users[userId].username),
-				       cursor);
-	}
+	Object.keys(value).forEach((userId) => {
+	  if (userId !== this.self.id) {
+	    const cursor = value[userId];
+	    try {
+	      this.cursorManager.setCursor(userId, cursor);
+	    } catch (e) {
+	      this.cursorManager.addCursor(userId,
+					   this.users[userId].username,
+					   stringToColor(this.users[userId].username),
+					   cursor);
+	    }
+	  }
       });
       },
     },
@@ -117,15 +122,17 @@ export default {
       deep: true,
       handler(value) {
 	Object.keys(value).forEach((userId) => {
-	  const range = value[userId];
-	  try {
-	    this.selectionManager.setSelection(userId,
-					       [AceRangeUtil.fromJson(range)]);
-	  } catch (e) {
-	    this.selectionManager.addSelection(userId,
-					       this.users[userId].username,
-					       stringToColor(this.users[userId].username),
-					       [AceRangeUtil.fromJson(range)]);
+	  if (userId !== this.self.id) {
+	    const range = value[userId];
+	    try {
+	      this.selectionManager.setSelection(userId,
+						 [AceRangeUtil.fromJson(range)]);
+	    } catch (e) {
+	      this.selectionManager.addSelection(userId,
+						 this.users[userId].username,
+						 stringToColor(this.users[userId].username),
+						 [AceRangeUtil.fromJson(range)]);
+	    }
 	  }
 	});
       },
@@ -160,6 +167,9 @@ export default {
   },
   
   mounted() {
+    const browserWindow = getCurrentWindow();
+    browserWindow.setTitle(`${this.$route.params.id} editor - Circle Z`);
+    
     this.fetchDocument(this.$route.params.id);
     
     this.editor = ace.edit('editor');
@@ -184,7 +194,7 @@ export default {
       }
       
       this.contentBackup = content;
-    }, 50 /* milliseconds debounce */));
+    }, 151 /* milliseconds debounce */));
 
     // Emitted when the cursor position changes.
     this.editor.getSelection().on('changeCursor', debounce(() => {
@@ -193,7 +203,7 @@ export default {
 	id: this.$route.params.id,
 	cursor,
       });
-    }, 50 /* milliseconds debounce */));
+    }, 53 /* milliseconds debounce */));
 
     // Emitted when the selection changes.
     this.editor.getSelection().on('changeSelection', debounce(() => {
@@ -202,7 +212,7 @@ export default {
 	id: this.$route.params.id,
 	range,
       });
-    }, 50 /* milliseconds debounce */));
+    }, 59 /* milliseconds debounce */));
   },
 
   beforeDestroy() {

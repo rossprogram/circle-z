@@ -29,7 +29,8 @@
       <canvas @mousedown='mousedown' id="canvas"/>
       <div class="pointer" v-for="id in blackboardUsers" :key="id"
 	   :style="blackboardPointerStyle(id)">
-	<span class="username" :style="{background: stringToColor(id)}">{{ users[id].username }}</span>
+	<span class="username" :style="{background: stringToColor(id)}"
+	      >{{ users[id] ? users[id].username : '???' }}</span>
       </div>
     </div>
   </div>
@@ -43,7 +44,7 @@ import pdfjs from 'pdfjs-dist/webpack';
 import { v4 as uuidv4 } from 'uuid';
 import stringHash from 'string-hash';
 
-const { dialog } = require('electron').remote;
+const { dialog, getCurrentWindow } = require('electron').remote;
 
 function showErrorBox(e) {
   dialog.showMessageBox({
@@ -485,6 +486,9 @@ export default {
   },
   
   mounted() {
+    const browserWindow = getCurrentWindow();
+    browserWindow.setTitle(`${this.$route.params.id} blackboard - Circle Z`);
+    
     this.who();
     this.fetchBlackboard(this.$route.params.id);
 

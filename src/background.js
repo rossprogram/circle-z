@@ -164,7 +164,7 @@ app.on('ready', async () => {
     // }
 
   }
-
+  store.dispatch('initialize');
   createWindow();
 });
            

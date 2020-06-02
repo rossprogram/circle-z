@@ -207,11 +207,13 @@ export default new Vuex.Store({
     },
 
     setDocumentCursor(state, { id, userId, cursor }) {
+      console.log('id=', id);
+      console.log('setting for ', userId, 'and now', state.cursors[id]);
       if (state.cursors[id] === undefined) {
         Vue.set(state.cursors, id, {});
       }
       Vue.set(state.cursors[id], userId, cursor);
-      console.log(state.cursors[id]);
+      console.log('setting for ', userId, 'and now', state.cursors[id]);
     },
 
     setDocumentSelection(state, { id, userId, range }) {
@@ -381,6 +383,7 @@ export default new Vuex.Store({
       });
 
       server.on('setDocumentCursor', (id, userId, cursor) => {
+        console.log('SET DOCIMENT CURSOR', userId);
         commit('setDocumentCursor', { id, userId, cursor });
       });
 
@@ -478,8 +481,7 @@ export default new Vuex.Store({
 
     fetchDocument({ commit }, // eslint-disable-line no-unused-vars
                   id) {
-      console.log('should fetch', id);
-      //service.getDocument(id);
+      service.getDocument(id);
     },
 
     updateDocumentCursor({ state, commit },

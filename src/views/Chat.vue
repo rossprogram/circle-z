@@ -90,17 +90,23 @@ export default {
     ]),
 
     editor() {
-      this.$router.push({
+      const routeData = this.$router.resolve({
 	name: 'editor',
 	params: { id: this.$route.params.id }, 
       });
+      // to ensure I only have one of each window open, use the href
+      // as the frame id
+      window.open(routeData.href, routeData.href);
     },
 
     blackboard() {
-      this.$router.push({
+      const routeData = this.$router.resolve({
 	name: 'blackboard',
 	params: { id: this.$route.params.id }, 
       });
+      // to ensure I only have one of each window open, use the href
+      // as the frame id
+      window.open(routeData.href, routeData.href);
     },
 
     video() {
