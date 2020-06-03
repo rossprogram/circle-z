@@ -1,14 +1,23 @@
 <template>
 <Header :name="`${this.$route.params.id}/editor`"
 	@leave='leave'
-	:buttons="{ Leave: 'sign-out-alt' }">
-  <splitpanes class="default-theme">
-    <pane min-size="50" size="70" max-size="80">
-      <div id="editor"></div>
+	@compile='compile'
+	:buttons="{ Compile: 'running', Leave: 'sign-out-alt' }">
+  <splitpanes horizontal class="default-theme">
+    <pane min-size="50" size="70" max-size="100">
+      <splitpanes class="default-theme">
+	<pane min-size="50" size="70" max-size="80">
+	  <div id="editor"></div>
+	</pane>
+	<pane size="20">
+	  <div v-if="dvi" class="wysiwyg">
+	    {{ dvi[0] }}	    ,{{ dvi[1] }}
+	  </div>
+	</pane>
+      </splitpanes>
     </pane>
-    <pane size="20">
-      <div class="wysiwyg">
-      </div>
+    <pane size="30">
+      <div id="console"><pre>{{terminalOutput}}</pre></div>
     </pane>
   </splitpanes>
 </Header>
@@ -27,6 +36,7 @@ import { debounce } from 'underscore';
 import stringHash from 'string-hash';
 
 const { getCurrentWindow } = require('electron').remote;
+const { ipcRenderer } = require('electron');
 
 const { Range } = ace;
 const diffMatchPatch = new DiffMatchPatch();
@@ -66,6 +76,8 @@ export default {
   data() {
     return {
       contentBackup: '',
+      terminalOutput: '',
+      dvi: undefined,
       editor: undefined,
       cursorManager: undefined,
     };
@@ -74,7 +86,13 @@ export default {
   methods: {
     ...mapActions(['updateDocument', 'fetchDocument',
 		   'updateDocumentCursor', 'updateDocumentSelection', 
-    ]),
+		  ]),
+
+    compile() {
+      this.terminalOutput = '';
+
+      ipcRenderer.send('tex', this.document);
+    },
 
     destroy() {
       this.editor.destroy();
@@ -167,6 +185,17 @@ export default {
   },
   
   mounted() {
+    ipcRenderer.on('dvi', (event, arg) => {
+      this.dvi = arg;
+      window.dvi = arg;
+    });
+
+    ipcRenderer.on('latex-console', (event, arg) => {
+      this.terminalOutput += arg;
+      const container = this.$el.querySelector('#console');
+      container.scrollTop = container.scrollHeight;
+    });
+    
     const browserWindow = getCurrentWindow();
     browserWindow.setTitle(`${this.$route.params.id} editor - Circle Z`);
     
@@ -225,9 +254,20 @@ export default {
   name: 'Editor',
 };
 
+
 </script>
 
 <style scoped lang="scss">
+
+#console {
+    overflow-x: hidden;
+    overflow-y: scroll;
+    height: 100%;
+}
+
+#console pre {
+    height: 100%;
+}
 
   #editor {
   height: 100% !important;

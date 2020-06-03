@@ -4,7 +4,7 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 import {
   faFilePdf, faChalkboard, faCog, faCity, faHashtag, faExclamationTriangle, faSync,
   faInfoCircle, faSignOutAlt, faSignInAlt, faExchangeAlt, faUsers, faPencilAlt, faVideo,
-  faStepForward, faStepBackward, faEraser,
+  faStepForward, faStepBackward, faEraser, faRunning,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import App from './App.vue';
@@ -21,6 +21,7 @@ library.add(faCog,
             faExchangeAlt,
             faEraser,
             faSync,
+            faRunning,
             faStepForward,
             faStepBackward,
             faChalkboard,
