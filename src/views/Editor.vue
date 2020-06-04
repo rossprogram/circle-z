@@ -10,9 +10,7 @@
 	  <div id="editor"></div>
 	</pane>
 	<pane size="20">
-	  <div v-if="dvi" class="wysiwyg">
-	    {{ dvi[0] }}	    ,{{ dvi[1] }}
-	  </div>
+	  <Dvi :data="dvi"/>
 	</pane>
       </splitpanes>
     </pane>
@@ -26,6 +24,7 @@
 <script>
 import { mapActions, mapState } from 'vuex';
 import Header from '@/components/Header.vue';
+import Dvi from '@/components/Dvi.vue';
 import ace from 'ace-builds/src-noconflict/ace';
 import 'ace-builds/src-min-noconflict/theme-chrome';
 import 'ace-builds/src-min-noconflict/mode-latex';
@@ -186,8 +185,9 @@ export default {
   
   mounted() {
     ipcRenderer.on('dvi', (event, arg) => {
-      this.dvi = arg;
-      window.dvi = arg;
+      console.log('getting compiled output');
+      this.dvi = Buffer.from(arg);
+      console.log(this.dvi.length);
     });
 
     ipcRenderer.on('latex-console', (event, arg) => {
@@ -250,6 +250,7 @@ export default {
   
   components: {
     Header,
+    Dvi,
   },
   name: 'Editor',
 };

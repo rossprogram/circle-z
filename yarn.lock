@@ -5710,6 +5710,11 @@ duplexify@^3.4.2, duplexify@^3.6.0:
     readable-stream "^2.0.0"
     stream-shift "^1.0.0"
 
+dvi2html@^0.0.6:
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/dvi2html/-/dvi2html-0.0.6.tgz#2daa5e162d4ae47afa0b608585a9bb56ae156368"
+  integrity sha512-WyL8IQQ5Y7Lo4IUXBzlPivjnEAEKa5uPofbzujTBIKo2BNtl3MhT3Oe1P2e5d7Go9/vIsHJmh0L+FLlaqoJqYw==
+
 easy-stack@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/easy-stack/-/easy-stack-1.0.0.tgz#12c91b3085a37f0baa336e9486eac4bf94e3e788"

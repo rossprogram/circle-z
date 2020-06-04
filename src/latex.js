@@ -64,7 +64,9 @@ async function runTex() {
 
 ipcMain.on('tex', async (event, document) => {
   console.log('Launching TeX...');
-
+  
+  library.deleteEverything();
+  
   const memory = new WebAssembly.Memory({ initial: pages, maximum: pages });
   
   const buffer = new Uint8Array(memory.buffer, 0, pages * 65536);
