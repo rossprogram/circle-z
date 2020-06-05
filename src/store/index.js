@@ -3,11 +3,52 @@ import Vuex from 'vuex';
 import DiffMatchPatch from 'diff-match-patch';
 import stringHash from 'string-hash';
 import { createSharedMutations } from 'vuex-electron';
+import electron from 'electron';
+import VuexPersistence from 'vuex-persist';
+import path from 'path';
+import fs from 'fs';
 import * as service from '../services';
 
 const diffMatchPatch = new DiffMatchPatch();
 
 Vue.use(Vuex);
+
+let persistPath = '/';
+
+if (electron) {
+  if (electron.remote) persistPath = electron.remote.app.getPath('userData');
+  else persistPath = electron.app.getPath('userData');
+}
+
+const vuexPersist = new VuexPersistence({
+  saveState: (_, state) => {
+    try {
+      fs.writeFileSync(path.join(persistPath, 'store.json'),
+                       JSON.stringify(state),
+                       'utf8');
+    } catch (err) {
+      console.log(err);
+    }
+  },
+  restoreState: () => {
+    try {
+      const data = fs.readFileSync(path.join(persistPath, 'store.json'),
+                                   'utf8');
+      return JSON.parse(data);
+    } catch (err) {
+      console.log(err);
+    }
+
+    return {};
+  },
+  reducer: (state) => ({
+    server: state.server,
+    port: state.port,
+    email: state.email,
+    password: state.password,
+  }),
+  filter: (mutation) => (mutation.type === 'setServerParameters'),
+});
 
 export default new Vuex.Store({
   state: {
@@ -562,6 +603,7 @@ export default new Vuex.Store({
   
   plugins: [
     createSharedMutations(),
+    vuexPersist.plugin,
   ],
   
 });
