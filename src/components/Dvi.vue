@@ -28,4 +28,11 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
 
+.tex {
+    overflow-x: scroll;
+    height: 100%;
+    width: 100%;
+    overflow-y: scroll;
+}
+
 </style>

@@ -1,8 +1,8 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import { createPersistedState, createSharedMutations } from 'vuex-electron';
 import DiffMatchPatch from 'diff-match-patch';
 import stringHash from 'string-hash';
+import { createSharedMutations } from 'vuex-electron';
 import * as service from '../services';
 
 const diffMatchPatch = new DiffMatchPatch();
@@ -204,6 +204,7 @@ export default new Vuex.Store({
 
     setDocument(state, { id, text }) {
       Vue.set(state.documents, id, text);
+      console.log('state.documents[', id, ']=', text);
     },
 
     setDocumentCursor(state, { id, userId, cursor }) {
@@ -307,7 +308,8 @@ export default new Vuex.Store({
       state.joinedChannels.forEach(service.join);
     },
 
-    initialize({ commit }) {
+    initialize({ state, commit }) {
+      console.log('intiial state=', state);
       commit('disconnected');
     },
     
@@ -373,7 +375,8 @@ export default new Vuex.Store({
       });
 
       server.on('setDocument', (id, text) => {
-        if (state.documents[id] !== text) commit('setDocument', { id, text });
+        //if (state.documents[id] !== text)
+        commit('setDocument', { id, text });
         commit('setShadow', { id, text });        
       });
 
@@ -552,14 +555,13 @@ export default new Vuex.Store({
       service.setBlackboardPage(id, page);
     },
 
-
   },
 
   modules: {
   },
   
   plugins: [
-    createPersistedState(),
     createSharedMutations(),
   ],
+  
 });

@@ -7,7 +7,6 @@ import {
   /* installVueDevtools */
 } from 'vue-cli-plugin-electron-builder/lib';
 
-import { fork } from 'child_process';
 import store from './store';
 import './latex';
 
@@ -167,8 +166,9 @@ app.on('ready', async () => {
     // }
 
   }
-  store.dispatch('initialize');
   createWindow();
+  store.dispatch('initialize');
+  console.log(store);
 });
            
 // Exit cleanly on request from parent process in development mode.

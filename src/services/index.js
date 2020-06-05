@@ -203,6 +203,7 @@ function onPrivmsg(socket, emitter, data) {
 }
 
 function setClientDocument(socket, emitter, data) {
+  console.log('INCOMING=', data);
   emitter.emit('setDocument', data.id, data.text);
 }
 

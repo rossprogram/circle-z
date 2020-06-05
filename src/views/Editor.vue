@@ -2,7 +2,7 @@
 <Header :name="`${this.$route.params.id}/editor`"
 	@leave='leave'
 	@compile='compile'
-	:buttons="{ Compile: 'running', Leave: 'sign-out-alt' }">
+	:buttons="{ Compile: 'hammer', Leave: 'sign-out-alt' }">
   <splitpanes horizontal class="default-theme">
     <pane min-size="50" size="70" max-size="100">
       <splitpanes class="default-theme">
@@ -57,7 +57,9 @@ export default {
 
     document: {
       get() {
-	return this.documents[this.$route.params.id];
+	const result = this.documents[this.$route.params.id];
+	if (result) return result;
+	return '';
       },
     },
     documentCursors: {
@@ -88,6 +90,8 @@ export default {
 		  ]),
 
     compile() {
+      console.log('COMPILOING', this.documents);
+      
       this.terminalOutput = '';
 
       ipcRenderer.send('tex', this.document);
@@ -118,7 +122,6 @@ export default {
     documentCursors: {
       deep: true,
       handler(value) {
-      console.log('cursors', value);
 	Object.keys(value).forEach((userId) => {
 	  if (userId !== this.self.id) {
 	    const cursor = value[userId];
@@ -156,6 +159,13 @@ export default {
     },
     
     document() {
+      console.log('watch document!');
+      if (this.contentBackup === undefined) {
+	this.editor.setValue(this.document, -1);
+	this.contentBackup = this.document;
+	return;
+      }
+      
       const diff = diffMatchPatch.diff_main(this.contentBackup, this.document, true);
 
       const doc = this.editor.getSession().getDocument();
@@ -184,6 +194,11 @@ export default {
   },
   
   mounted() {
+    console.log('MOUNTED');
+    console.log('contentBackup', this.contentBackup === undefined);
+    
+    this.fetchDocument(this.$route.params.id);
+    
     ipcRenderer.on('dvi', (event, arg) => {
       console.log('getting compiled output');
       this.dvi = Buffer.from(arg);
@@ -199,15 +214,13 @@ export default {
     const browserWindow = getCurrentWindow();
     browserWindow.setTitle(`${this.$route.params.id} editor - Circle Z`);
     
-    this.fetchDocument(this.$route.params.id);
-    
     this.editor = ace.edit('editor');
     this.editor.setTheme('ace/theme/chrome');
     this.editor.session.setMode('ace/mode/latex');
     this.editor.resize();
 
-    this.editor.setValue(this.document, -1);
-    this.contentBackup = this.document;
+    this.contentBackup = undefined;
+    
     this.editor.focus();
     
     this.cursorManager = new AceMultiCursorManager(this.editor.getSession());
