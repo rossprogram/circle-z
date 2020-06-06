@@ -285,13 +285,15 @@ export default new Vuex.Store({
     },
 
     addBlackboardInk(state, {
-      id, artist, uuid, points, 
+      id, artist, uuid, style, points, 
     }) { // eslint-disable-line no-unused-vars
       if (state.blackboards[id] === undefined) {
         Vue.set(state.blackboards, id, { ink: [] });
       }
 
-      state.blackboards[id].ink.push({ artist, uuid, points });
+      state.blackboards[id].ink.push({
+        artist, uuid, style, points, 
+      });
     },
     
     setBlackboardPointer(state, { id, user, position }) {
@@ -457,9 +459,9 @@ export default new Vuex.Store({
         commit('updateBlackboard', { id, update: changes });
       });
 
-      server.on('addBlackboardInk', (id, artist, uuid, points) => {
+      server.on('addBlackboardInk', (id, artist, uuid, style, points) => {
         commit('addBlackboardInk', {
-          id, artist, uuid, points, 
+          id, artist, uuid, style, points, 
         });
       });
 
@@ -577,8 +579,10 @@ export default new Vuex.Store({
     },
 
     addBlackboardInk({ state, commit }, // eslint-disable-line no-unused-vars
-                     { id, uuid, points }) {
-      service.addBlackboardInk(id, uuid, points);
+                     {
+ id, uuid, style, points, 
+}) {
+      service.addBlackboardInk(id, uuid, style, points);
     },
 
     clearBlackboardInk({ state, commit }, // eslint-disable-line no-unused-vars

@@ -8,6 +8,13 @@
 
       <button @click="erase"><font-awesome-icon icon="eraser" /> Erase board</button>
 
+      <select  v-model="currentStyle" name="pen" id="pen">
+	<option value="pen">Pen</option>
+	<option value="highlighter">Highlighter</option>
+	<option value="red">Red marker</option>
+	<option value="erase">Eraser</option>
+      </select>
+      
       <span id="zoom">
 	<label for="zoom">Zoom</label>
 	<input name="zoom" type="number" max="300" min="20" step="10" v-model="scalePercent"/>
@@ -138,6 +145,7 @@ export default {
       currentX: 0,
       currentInk: undefined,
       currentY: 0,
+      currentStyle: 'pen',
       
       canvas: undefined,
       overlay: undefined,
@@ -177,7 +185,6 @@ export default {
 	const rect = this.canvas.getBoundingClientRect();
 	const scaleX = this.canvas.width / rect.width;
 	const scaleY = this.canvas.height / rect.height;
-
 
 	x = (x * dpr) / scaleX + rect.left;
 	y = (y * dpr) / scaleY + rect.top;
@@ -256,12 +263,41 @@ export default {
       }
     },
 
+    useStyle(style) {
+      if (style === 'highlighter') {
+	this.ctx.strokeStyle = 'yellow';
+	this.ctx.lineWidth = 8 * this.scale;
+	this.ctx.globalCompositeOperation = 'multiply';
+	return;
+      }
+
+      if (style === 'red') {
+	this.ctx.strokeStyle = 'red';
+	this.ctx.lineWidth = 4 * this.scale;
+	this.ctx.globalCompositeOperation = 'multiply';
+	return;
+      }
+
+      if (style === 'erase') {
+	this.ctx.lineWidth = 30 * this.scale;
+	this.ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+	this.ctx.globalCompositeOperation = 'source-over';
+	return;
+      }      
+      
+      this.ctx.strokeStyle = 'black';
+      this.ctx.globalCompositeOperation = 'source-over';
+      this.ctx.lineWidth = this.scale;
+      
+    },
+    
     drawInk() {
       this.ink.forEach((path) => {
 	if (!this.drawnInk[path.uuid]) {
 	  this.drawnInk[path.uuid] = true;
 
 	  if (path.points) {
+	    this.useStyle(path.style);
             this.ctx.beginPath();
             this.ctx.moveTo(path.points[0].x * this.scale,
 			    path.points[0].y * this.scale);
@@ -269,8 +305,6 @@ export default {
               this.ctx.lineTo(path.points[i].x * this.scale,
 			      path.points[i].y * this.scale);
 	    }
-	    this.ctx.strokeStyle = 'black';
-            this.ctx.lineWidth = this.scale;
             this.ctx.stroke();
             this.ctx.closePath();
 	  } else {
@@ -313,6 +347,7 @@ export default {
 	  this.addBlackboardInk({
 	    id: this.$route.params.id,
 	    uuid,
+	    style: this.currentStyle,
 	    points: this.currentInk, 
 	  });
 	  this.drawnInk[uuid] = true;
@@ -326,8 +361,7 @@ export default {
           this.ctx.beginPath();
           this.ctx.moveTo(this.previousX * this.scale, this.previousY * this.scale);
           this.ctx.lineTo(this.currentX * this.scale, this.currentY * this.scale);
-	  this.ctx.strokeStyle = 'black';
-	  this.ctx.lineWidth = this.scale;
+	  this.useStyle(this.currentStyle);
           this.ctx.stroke();
           this.ctx.closePath();
 	} else {

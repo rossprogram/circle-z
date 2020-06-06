@@ -142,11 +142,12 @@ export function setBlackboardPdf(id, pdf) {
   });
 }
 
-export function addBlackboardInk(id, uuid, points) {
+export function addBlackboardInk(id, uuid, style, points) {
   theSocket.sendMessage({
     type: 'addBlackboardInk',
     id,
     uuid,
+    style,
     points,
   });
 }
@@ -233,7 +234,7 @@ function setBlackboard(socket, emitter, data) {
 }
 
 function onAddBlackboardInk(socket, emitter, data) {
-  emitter.emit('addBlackboardInk', data.id, data.artist, data.uuid, data.points);
+  emitter.emit('addBlackboardInk', data.id, data.artist, data.uuid, data.style, data.points);
 }
 
 function onSetBlackboardPointer(socket, emitter, data) {
