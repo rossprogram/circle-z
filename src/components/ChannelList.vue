@@ -29,9 +29,9 @@
 		   :count="unreadCounts[room]"/>
 	</router-link>
 	<router-link tag='li' :to="{ name: 'rooms' }">
-	  <a><font-awesome-icon icon="city" />
+	  <span><font-awesome-icon icon="city" />
 	    ROOMS
-	  </a>
+	  </span>
 	</router-link>
       </ul>
     </div>
@@ -48,9 +48,9 @@
 	</router-link>
       
 	<router-link tag='li' :to="{ name: 'users' }">
-	  <a><font-awesome-icon icon="users" />
+	  <span><font-awesome-icon icon="users" />
 	    PEOPLE
-	  </a>
+	  </span>
 	</router-link>
       </ul>
     </div>
@@ -58,20 +58,19 @@
     <h3></h3>     
     <ul>
       <router-link v-if="connected" tag='li' class="forum" :to="{ name: 'forum' }">
-	<a><font-awesome-icon icon="mail-bulk" />
+	<span><font-awesome-icon icon="mail-bulk" />
 	  FORUM
-	</a>
+	</span>
       </router-link>
 
       <router-link tag='li' :to="{ name: 'settings' }">
-	<a><font-awesome-icon icon="cog" />
-	  SETTINGS
-	</a>
+	<span><font-awesome-icon icon="cog" />
+	  SETTINGS</span>
       </router-link>
       <router-link tag='li' :to="{ name: 'about' }">
-	<a><font-awesome-icon icon="info-circle" />
+	<span><font-awesome-icon icon="info-circle" />
 	  ABOUT
-	</a>
+	</span>
       </router-link>
     </ul>
 
@@ -222,11 +221,12 @@ li {
     display: block;
     padding: 0;
     padding-left: 12pt;
+    
     padding-bottom: 6pt;
     padding-top: 6pt;
-    margin-bottom: 0;
-    margin-top: 0;
+    
     padding-right: 6pt;
+    cursor: pointer;
 }
 
 
@@ -234,7 +234,7 @@ li svg {
     color: #aaa;
 }
 
-li a {
+li span {
 text-decoration: none;
 color: #fff;
 font-size: 8pt;

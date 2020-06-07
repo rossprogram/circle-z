@@ -1,5 +1,5 @@
 <template>
-    <a>
+    <span class="channel">
       <span class="full-name">
 	<span class="hash-and-name">
 	  <span class="hashes">
@@ -11,7 +11,7 @@
 	</span>
 	<span class="counter" v-if="this.count > 0">{{ this.count }}</span>            
       </span>
-    </a>
+    </span>
 </template>
 
 <script>
@@ -26,7 +26,9 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
-
+.channel {
+cursor: pointer;
+}
 
   .unread {
       font-weight: bold;
