@@ -53,8 +53,17 @@
     <hr/>
     <button :disabled="!connected" @click="launchMumble"
 	    ><font-awesome-icon icon="sign-in-alt" /> Launch mumble</button>
-    
 
+    <div v-if="connected">
+      <p>As of {{ pingTimeRelative }}, there
+	{{ (connectedUserCount === 1) ? 'was' : 'were' }} {{ connectedUserCount }} connected
+	user{{ (connectedUserCount === 1) ? '' : 's' }}.</p>
+      
+      <p>The server time is {{ serverTime }}.</p>
+      <p>The server is handling {{ requestsPerTimeUnit }}
+      and using {{ Math.ceil(serverMemoryUsed / 1024 / 1024) }} megabytes of memory.</p>
+
+    </div>
   </Header>
 </template>
 
@@ -62,6 +71,7 @@
 // @ is an alias to /src
 import Header from '@/components/Header.vue';
 import { mapActions, mapState, mapGetters } from 'vuex';
+import moment from 'moment';
 
 const { remote } = require('electron');
 
@@ -75,11 +85,26 @@ export default {
   computed: {
     ...mapState(['server', 'port', 'email', 'password',
 		 'connected', 'connecting',
+		 'connectedUserCount',
+		 'requestsPerSecond',
+		 'serverMemoryUsed',
+		 'serverTime', 'pingTime',
 		]),
     ...mapGetters(['mumbleUrl',
 		  ]),
-  },
 
+    pingTimeRelative() {
+      return moment(this.pingTime).fromNow();
+    },
+
+    requestsPerTimeUnit() {
+      if (this.requestsPerSecond < 1) {
+	return `${Math.ceil(this.requestsPerSecond * 60)} requests per minute`;
+      }
+      return `${Math.ceil(this.requestsPerSecond)} requests per second`;
+    },
+  },
+    
   methods: {
     ...mapActions([
       'quit',

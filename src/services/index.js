@@ -288,6 +288,10 @@ function addPosts(socket, emitter, data) {
   emitter.emit('addPosts', data.posts);
 }
 
+function ping(socket, emitter, data) {
+  emitter.emit('ping', data);
+}
+
 const callbacks = {
   error,
   login,
@@ -308,6 +312,8 @@ const callbacks = {
   setBlackboardPointer: onSetBlackboardPointer,
 
   addPosts,
+
+  ping,
 };
 
 function handleMessage(socket, emitter, data) {

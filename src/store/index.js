@@ -94,6 +94,12 @@ export default new Vuex.Store({
 
     everConnected: false,
     snackbar: { snack: '', visible: false },
+
+    connectedUserCount: 0,
+    requestsPerSecond: 0,
+    serverMemoryUsed: 0,
+    serverTime: undefined,
+    pingTime: undefined,
   },
 
   getters: {
@@ -250,17 +256,13 @@ export default new Vuex.Store({
 
     setDocument(state, { id, text }) {
       Vue.set(state.documents, id, text);
-      console.log('state.documents[', id, ']=', text);
     },
 
     setDocumentCursor(state, { id, userId, cursor }) {
-      console.log('id=', id);
-      console.log('setting for ', userId, 'and now', state.cursors[id]);
       if (state.cursors[id] === undefined) {
         Vue.set(state.cursors, id, {});
       }
       Vue.set(state.cursors[id], userId, cursor);
-      console.log('setting for ', userId, 'and now', state.cursors[id]);
     },
 
     setDocumentSelection(state, { id, userId, range }) {
@@ -271,7 +273,6 @@ export default new Vuex.Store({
     },
 
     setShadow(state, { id, text }) {
-      if (state.shadows && state.shadows[id]) console.log('shadow was', stringHash(state.shadows[id]), 'and is now', stringHash(text));
       Vue.set(state.shadows, id, text);
     },
 
@@ -350,6 +351,20 @@ export default new Vuex.Store({
         }
       }
     },
+
+    updateServerStatus(state,
+                       {
+                         connectedUserCount,
+                         requestsPerSecond,
+                         serverTime,
+                         memoryUsed,
+                       }) {
+      state.connectedUserCount = connectedUserCount;
+      state.requestsPerSecond = requestsPerSecond;
+      state.serverTime = new Date(serverTime);
+      state.serverMemoryUsed = memoryUsed;
+      state.pingTime = new Date();
+    },
   },
   
   actions: {
@@ -399,7 +414,6 @@ export default new Vuex.Store({
     },
 
     initialize({ state, commit }) {
-      console.log('intiial state=', state);
       commit('disconnected');
     },
     
@@ -420,6 +434,10 @@ export default new Vuex.Store({
         if (state.self) commit('setSelf', state.self);
       });
 
+      server.on('ping', (data) => {
+        commit('updateServerStatus', data);
+      });
+      
       server.on('rooms', (rooms) => {
         commit('updateRooms', rooms);
       });
@@ -436,7 +454,6 @@ export default new Vuex.Store({
       });
 
       server.on('disconnected', () => {
-        console.log('actually disconnected');
         commit('disconnected');
       });      
 
@@ -480,7 +497,6 @@ export default new Vuex.Store({
       });
 
       server.on('setDocumentCursor', (id, userId, cursor) => {
-        console.log('SET DOCIMENT CURSOR', userId);
         commit('setDocumentCursor', { id, userId, cursor });
       });
 
