@@ -20,6 +20,11 @@
 	  {{ (rooms[roomname].users.length === 1) ? 'person' : 'people' }}
 	  {{ (rooms[roomname].users.indexOf(self.id) >= 0) ? 'including you' : '' }}
 	</span>
+	<ul class="user-list">
+	  <li v-for="user in rooms[roomname].users" v-bind:key="user" :userId="user">
+	    <User v-bind:key="`${user}-${roomname}`" :userId="user"/>
+	  </li>
+	</ul>
       </div>
     </div>
     <div v-if="newRoom" class="card-item" key="newRoom">
@@ -41,12 +46,14 @@
 
 <script>
 import Header from '@/components/Header.vue';
+import User from '@/components/User.vue';
 import { mapActions, mapState } from 'vuex';
 
 export default {
   name: 'RoomList',
   components: {
     Header,
+    User,
   },
 
   data() {
@@ -168,6 +175,21 @@ margin-bottom: 6pt;
 .room-name {
 font-weight: bold;
   margin-left: 2pt;
+}
+
+ul.user-list {
+    padding: 0;
+    margin: 0;
+    display: inline;
+    list-style: none;
+}
+
+ul.user-list li + li:before {
+    content: ", ";
+}
+
+ul.user-list li {
+    display: inline;
 }
 
 </style>

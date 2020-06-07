@@ -37,9 +37,10 @@
 	  <span>Forums</span>
 	</router-link>
       </ul>
-<Post :key="`${this.$route.params.id}-${this.sortBy}-${this.children}`"
+<Post :key="`${this.$route.params.id}-${this.sortBy}-${this.children}-${this.$route.params.id}`"
       :postId="this.$route.params.id"
-      :sortBy="sortBy"/>
+      :sortBy="sortBy"
+      :root="this.$route.params.id"/>
 </div>
 </div>
 </template>

@@ -1,26 +1,34 @@
 <template>
-<div @click="openPrivateMessages">
-  <span>{{ this.nick }}</span>
-</div>
+<span @click="openPrivateMessages">
+  <span>@{{ user.username }}</span>
+</span>
 </template>
 
 <script>
-
+import { mapState } from 'vuex';
 
 export default {
+  computed: {
+    ...mapState(['users']),
+
+    user() {
+      return this.users[this.userId];
+    },
+  },
+      
   name: 'User',
   props: {
-    nick: String,
+    userId: String,
   },
 
   methods: {
     openPrivateMessages() {
       this.$router.push(
 	{
- name: 'chat',
+	  name: 'chat',
 	  params: { id: this.nick }, 
-},
-);
+	},
+      );
     },
   },
 };

@@ -59,6 +59,8 @@ console.log('Loaded mathjax.');
 
 const { MathJax } = window;
 
+const { remote } = require('electron');
+
 /*
  * Tiny tokenizer
  * from https://gist.github.com/borgar/451393/7698c95178898c9466214867b46acb2ab2f56d68
@@ -127,7 +129,12 @@ function tokenizeTex(s) {
     beginOptionGroup: /\[/,
     endOptionGroup: /\]/,    
     command: /\\[A-Za-z]+/,
-    whitespace: /\s+/,
+    doubleReturn: /\n\n+/,
+    whitespace: /[ \t]+/,
+    newline: /\n/,
+    
+    url: /https?:\/\/[^\s]+/,
+    room: /#[A-Za-z0-9-]+/,
   }, 'text');
   
   return tokens;
@@ -162,7 +169,7 @@ function parseMath(tokenizer, output, display) {
   output(html);
 }
 
-function parseText(tokenizer, output) {
+function parseText(tokenizer, output, router) {
   let done = false;
   
   while (!done) {
@@ -181,6 +188,26 @@ function parseText(tokenizer, output) {
       parseMath(tokenizer, output, true);
     } else if (token.type === 'displayMathShift') {
       parseMath(tokenizer, output, true);
+    } else if (token.type === 'doubleReturn') {
+      output(document.createElement('br'));
+    } else if (token.type === 'url') {
+      const node = document.createElement('a');
+      node.href = token.token;
+      node.appendChild(document.createTextNode(token.token));
+      node.addEventListener('click', (e) => {
+        e.preventDefault();
+        remote.shell.openExternal(token.token);
+      });
+      output(node);
+    } else if (token.type === 'room') {
+      const node = document.createElement('a');
+      const props = router.resolve({ 
+        name: 'room',
+        params: { id: token.token },
+      });
+      node.href = props.href;
+      node.appendChild(document.createTextNode(token.token));
+      output(node);
     } else {
       output(document.createTextNode(token.token));
     }
@@ -219,7 +246,7 @@ export default {
     
     parseText(tokenizer, (el) => {
       node.appendChild(el);
-    });
+    }, this.$router);
 
     this.$el.parentNode.appendChild(node);
     

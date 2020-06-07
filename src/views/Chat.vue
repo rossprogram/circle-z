@@ -24,9 +24,11 @@
       </div>
     </pane>
     <pane size="20">
-      <div class="user-list">
-	<User v-for="user in usersInRoom" v-bind:key="user" :nick="user"/>
-      </div>
+      <ul class="user-list">
+	<li v-for="user in usersInRoom" v-bind:key="user" :userId="user">
+	  <User v-bind:key="user" :userId="user"/>
+	</li>
+      </ul>
     </pane>
   </splitpanes>
 </Header>
@@ -57,7 +59,7 @@ export default {
 
     usersInRoom: {
       get() {
-	return [];
+	return this.room.users;
       },
     },
   },
@@ -171,9 +173,11 @@ export default {
 
 <style scoped lang="scss">
   .user-list {
-  height: 100%;
-  padding-left: 6pt;
-  border-left: solid #aaa 1px;
+      height: 100%;
+      padding: 0;
+      margin: 0;
+      padding-left: 6pt;
+      border-left: solid #aaa 1px;
   }
   
   .chat {

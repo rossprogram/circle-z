@@ -1,10 +1,12 @@
 <template>
 <div>
-  <div @contextmenu="showMenu" @click.stop.prevent="gotoPost" v-if="post" class="post">
-    <div class="subject"><Tex>{{ post.subject }}</Tex></div>
-    <div class="body"><Tex>{{ post.body }}</Tex></div>
+  <div @contextmenu="showMenu" v-if="post" class="post">
+    <div @click="gotoPost" class="subject"><Tex>{{ post.subject }}</Tex></div>
+    <div @click="gotoPost" class="body"><Tex>{{ post.body }}</Tex></div>
     <div class="byline">
-      <span class="author">{{ username }}</span>
+      <span class="author">
+	<User v-bind:key="post.author" :userId="post.author"/>
+      </span>
       <span class="time">
 	<font-awesome-icon icon="clock" />
 	{{ new Date(post.createdAt) | moment }}
@@ -31,12 +33,12 @@
       </div>
       <button @click="makePost"><font-awesome-icon icon="paper-plane" /> Post</button>&nbsp;
       <button v-if="post" @click="cancelPost">
-	<font-awesome-icon icon="paper-plane" /> Cancel</button>
+	&times; Cancel</button>
     </div>
     <div v-if="(showChildren === true) && ((postId === undefined) || (post && post.children))">
       <Post v-for="child in sortedChildren"
-	    :key="`${child}-${sortBy}-${posts[child].children}`"
-	    :postId="child" :sortBy="sortBy"/>
+	    :key="`${child}-${sortBy}-${posts[child].children}-${root}`"
+	    :postId="child" :sortBy="sortBy" :root="root"/>
     </div>
     <div v-else-if="post">
       <span class="view-replies" @click="viewReplies">View replies&hellip;</span>
@@ -47,6 +49,7 @@
 
 <script>
 import Tex from '@/components/Tex';
+import User from '@/components/User.vue';
 import moment from 'moment';
 import { mapActions, mapState } from 'vuex';
 
@@ -133,8 +136,11 @@ export default {
       menu.popup(getCurrentWindow());
     },
     
-    gotoPost() {
-      this.$router.push({ name: 'forum', params: { id: this.postId } });
+    gotoPost(e) {
+      if (this.root !== this.postId) {
+	this.$router.push({ name: 'forum', params: { id: this.postId } });
+	e.preventDefault();
+      }
     },
 
     cancelPost() {
@@ -183,10 +189,12 @@ export default {
   props: {
     postId: String,
     sortBy: String,
+    root: String,
   },
   
   components: {
     Tex,
+    User,
   },
   
   filters: {
@@ -217,6 +225,7 @@ export default {
     border-top: solid 1px #eee;
     padding-top: 0.5em;
     margin-top: 0.5em;
+    padding-left: 0.25em;
 }
 
 .subject {
