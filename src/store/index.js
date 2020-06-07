@@ -73,6 +73,9 @@ export default new Vuex.Store({
     
     blackboards: {},
     pointers: {},
+
+    posts: {},
+    rootPosts: [],
     
     counter: 1,
 
@@ -303,6 +306,48 @@ export default new Vuex.Store({
 
       Vue.set(state.pointers[id], user, position);
     },
+
+    addPosts(state, { posts }) {
+      posts.forEach((post) => {
+        if (state.posts[post.id] === undefined) Vue.set(state.posts, post.id, {});
+        
+        Vue.set(state.posts[post.id], 'body', post.body);
+        Vue.set(state.posts[post.id], 'subject', post.subject);
+        Vue.set(state.posts[post.id], 'createdAt', post.createdAt);
+        Vue.set(state.posts[post.id], 'updatedAt', post.updatedAt);
+        Vue.set(state.posts[post.id], 'upvoteCount', post.upvoteCount);
+        Vue.set(state.posts[post.id], 'downvoteCount', post.downvoteCount);
+        Vue.set(state.posts[post.id], 'parent', post.parent);
+        Vue.set(state.posts[post.id], 'hidden', post.hidden);
+        Vue.set(state.posts[post.id], 'author', post.author);
+        Vue.set(state.posts[post.id], 'ancestors', post.ancestors);
+      });
+
+      posts.forEach((post) => {
+        if (post.parent === undefined || post.parent === null) {
+          if (state.rootPosts.indexOf(post.id) < 0) {
+            state.rootPosts.push(post.id);
+          }
+        } else {
+          if (state.posts[post.parent].children === undefined) {
+            Vue.set(state.posts[post.parent], 'children', []);
+          }
+          if (state.posts[post.parent].children.indexOf(post.id) < 0) {
+            state.posts[post.parent].children.push(post.id);
+          }
+        }
+      });      
+    },
+
+    setupChildPosts(state, { parent }) {
+      const post = state.posts[parent];
+
+      if (post) {
+        if (post.children === undefined) {
+          Vue.set(state.posts[parent], 'children', []);
+        }
+      }
+    },
   },
   
   actions: {
@@ -386,6 +431,7 @@ export default new Vuex.Store({
       });
 
       server.on('disconnected', () => {
+        console.log('actually disconnected');
         commit('disconnected');
       });      
 
@@ -437,6 +483,10 @@ export default new Vuex.Store({
         commit('setDocumentSelection', { id, userId, range });
       });
 
+      server.on('addPosts', (posts) => {
+        commit('addPosts', { posts });
+      });
+      
       server.on('updateBlackboard', (id, update) => {
         const changes = {};
         
@@ -599,7 +649,37 @@ export default new Vuex.Store({
                          { id, page }) {
       service.setBlackboardPage(id, page);
     },
+    
+    upvotePost({ commit }, // eslint-disable-line no-unused-vars
+               { post }) {
+      service.upvotePost(post);
+    },
 
+    downvotePost({ commit }, // eslint-disable-line no-unused-vars
+               { post }) {
+      service.downvotePost(post);
+    },
+    
+    removePost({ commit }, // eslint-disable-line no-unused-vars
+               { post }) {
+      service.removePost(post);
+    },
+
+    writePost({ commit }, // eslint-disable-line no-unused-vars
+              { parent, subject, body }) {
+      service.writePost(parent, subject, body);
+    },
+
+    fetchPosts({ commit }, // eslint-disable-line no-unused-vars
+               { parent }) {
+      commit('setupChildPosts', { parent });
+      service.getPosts(parent);
+    },
+
+    fetchRootPosts({ commit }) { // eslint-disable-line no-unused-vars
+      service.getRootPosts();
+    },
+    
   },
 
   modules: {

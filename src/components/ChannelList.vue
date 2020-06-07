@@ -53,6 +53,12 @@
     
     <h3></h3>     
     <ul>
+      <router-link tag='li' class="forum" :to="{ name: 'forum' }">
+	<a><font-awesome-icon icon="mail-bulk" />
+	  FORUM
+	</a>
+      </router-link>
+
       <router-link tag='li' :to="{ name: 'settings' }">
 	<a><font-awesome-icon icon="cog" />
 	  SETTINGS
@@ -129,8 +135,11 @@ li.router-link-exact-active {
     background-color: #45f;
 }
 
+li.forum.router-link-active {
+    background-color: #45f;
+}
 
-  li a {
+li a {
     text-decoration: none;
     color: white;
 }

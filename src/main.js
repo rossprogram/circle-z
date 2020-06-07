@@ -4,7 +4,8 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 import {
   faFilePdf, faChalkboard, faCog, faCity, faHashtag, faExclamationTriangle, faSync,
   faInfoCircle, faSignOutAlt, faSignInAlt, faExchangeAlt, faUsers, faPencilAlt, faVideo,
-  faStepForward, faStepBackward, faEraser, faHammer,
+  faStepForward, faStepBackward, faEraser, faHammer, faMailBulk, faReply,
+  faThumbsUp, faThumbsDown, faClock, faPaperPlane, faLevelUpAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import App from './App.vue';
@@ -16,20 +17,27 @@ import 'splitpanes/dist/splitpanes.css';
 library.add(faCog,
             faFilePdf,
             faCity,
+            faPaperPlane,
             faHashtag,
             faExclamationTriangle,
             faExchangeAlt,
             faEraser,
+            faLevelUpAlt,
             faSync,
             faHammer,
+            faMailBulk,
+            faClock,
             faStepForward,
             faStepBackward,
             faChalkboard,
             faInfoCircle,
             faSignOutAlt,
+            faReply,
             faSignInAlt,
             faUsers,
             faVideo,
+            faThumbsUp,
+            faThumbsDown,
             faPencilAlt);
  
 Vue.component('font-awesome-icon', FontAwesomeIcon);

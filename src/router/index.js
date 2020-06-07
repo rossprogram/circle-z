@@ -2,13 +2,13 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 import About from '../views/About.vue';
 import Chat from '../views/Chat.vue';
+import Forum from '../views/Forum.vue';
 import PrivateChat from '../views/PrivateChat.vue';
 import RoomList from '../views/RoomList.vue';
 import UserList from '../views/UserList.vue';
 import Settings from '../views/Settings.vue';
 import Editor from '../views/Editor.vue';
 import Blackboard from '../views/Blackboard.vue';
-import Video from '../views/Video.vue';
 
 Vue.use(VueRouter);
 
@@ -35,6 +35,12 @@ const routes = [
   },  
 
   {
+    path: '/forum/:id?',
+    name: 'forum',
+    component: Forum,
+  },
+  
+  {
     path: '/rooms/:id/blackboard',
     name: 'blackboard',
     component: Blackboard,
@@ -50,12 +56,6 @@ const routes = [
     meta: {
       fullscreen: true,
     },
-  },
-
-  {
-    path: '/rooms/:id/video',
-    name: 'video',
-    component: Video,
   },
 
   {

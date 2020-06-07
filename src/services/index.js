@@ -174,6 +174,49 @@ export function setBlackboardPage(id, page) {
   });
 }
 
+export function upvotePost(id) {
+  theSocket.sendMessage({
+    type: 'upvotePost',
+    id,
+  });
+}
+
+export function downvotePost(id) {
+  theSocket.sendMessage({
+    type: 'downvotePost',
+    id,
+  });
+}
+
+export function removePost(id) {
+  theSocket.sendMessage({
+    type: 'removePost',
+    id,
+  });
+}
+
+export function writePost(parent, subject, body) {
+  theSocket.sendMessage({
+    type: 'writePost',
+    parent,
+    subject,
+    body,
+  });
+}
+
+export function getPosts(parent) {
+  theSocket.sendMessage({
+    type: 'getPosts',
+    parent,
+  });
+}
+
+export function getRootPosts() {
+  theSocket.sendMessage({
+    type: 'getRootPosts',
+  });
+}
+
 function error(socket, emitter, data) {
   emitter.emit('error', data.error);
 }
@@ -241,6 +284,10 @@ function onSetBlackboardPointer(socket, emitter, data) {
   emitter.emit('setBlackboardPointer', data.id, data.user, { x: data.x, y: data.y });
 }
 
+function addPosts(socket, emitter, data) {
+  emitter.emit('addPosts', data.posts);
+}
+
 const callbacks = {
   error,
   login,
@@ -259,6 +306,8 @@ const callbacks = {
   setBlackboard,
   addBlackboardInk: onAddBlackboardInk,
   setBlackboardPointer: onSetBlackboardPointer,
+
+  addPosts,
 };
 
 function handleMessage(socket, emitter, data) {
