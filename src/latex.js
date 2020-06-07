@@ -28,7 +28,6 @@ fs.readFile(path.join(__dirname, texBinaryPath), (err, texBinary) => {
   } else {
     console.log('Loaded texBinary with', texBinary.length, 'bytes');
     compiled = new WebAssembly.Module(texBinary);
-    console.log('compiled=', compiled);
   }
 });
 
@@ -57,8 +56,46 @@ function copy(src) {
   return dst;
 }
 
-async function runTex() {
+function runTex() {
+  return new Promise(async (resolve, reject) => {
+    const memory = new WebAssembly.Memory({ initial: pages, maximum: pages });
+  
+    const buffer = new Uint8Array(memory.buffer, 0, pages * 65536);
+    buffer.set(copy(coredump));
+  
+    library.setMemory(memory.buffer);
 
+    library.setDirectory('');
+  
+    //library.setInput(` \\PassOptionsToClass{web}{ximera}\\PassOptionsToPackage{margin=1in,paperwidth=${(e.data.paperwidth + 144).toString()}pt,paperheight=100in}{geometry}\n\\input{${path.basename(filename)}}\n\\end\n`);
+    library.setInput(' texput.tex');
+    
+  
+    library.setCallback(() => {
+      const filename = 'texput.dvi';
+      //let data = library.readFileSync( filename )
+      const data = library.readFileSync('texput.dvi');
+      //self.postMessage({ dvi: data }, [data.buffer]);
+      console.log('**** DONE');
+      resolve(data.buffer);
+    });
+  
+    let instance;
+
+    try {
+      instance = await WebAssembly.instantiate(compiled, {
+        library,
+        env: { memory },
+      });
+    } catch (err) {
+      reject(err);
+    }
+    
+    const wasmExports = instance.exports;
+    library.setWasmExports(wasmExports);
+    
+    wasmExports.main();
+  });
 }
 
 
@@ -66,54 +103,16 @@ ipcMain.on('tex', async (event, document) => {
   console.log('Launching TeX...');
   
   library.deleteEverything();
-  
-  const memory = new WebAssembly.Memory({ initial: pages, maximum: pages });
-  
-  const buffer = new Uint8Array(memory.buffer, 0, pages * 65536);
-  buffer.set(copy(coredump));
-
-  // library.setUrlRoot(`https://raw.githubusercontent.com/${repositoryName}/master/`);
-  
-  library.setMemory(memory.buffer);
-
-  library.setDirectory('');
-  
-  //library.setInput(` \\PassOptionsToClass{web}{ximera}\\PassOptionsToPackage{margin=1in,paperwidth=${(e.data.paperwidth + 144).toString()}pt,paperheight=100in}{geometry}\n\\input{${path.basename(filename)}}\n\\end\n`);
-  library.setInput(` ${document}`);
+  library.setTexput(document);
 
   library.setConsoleWriter((x) => {
     event.reply('latex-console', x);
   });
   
-  library.setCallback(() => {
-    const filename = 'texput.dvi';
-    //let data = library.readFileSync( filename )
-    const data = library.readFileSync('texput.dvi');
-    //self.postMessage({ dvi: data }, [data.buffer]);
-    console.log('**** DONE');
-    event.reply('dvi', data.buffer);
-  });
+  const dvi = await runTex();
   
-  let instance;
-
-  try {
-    instance = await WebAssembly.instantiate(compiled, {
-      library,
-      env: { memory },
-    });
-  } catch (err) {
-    console.log(err);
-  }
-  
-  console.log('instance=', instance);
-    
-  const wasmExports = instance.exports;
-  library.setWasmExports(wasmExports);
-
-  console.log('wasmExports', wasmExports);
-
-  wasmExports.main();
-  
+  event.reply('dvi', dvi);
+ 
   //console.log(arg);
   //p.send('hello');
   /*

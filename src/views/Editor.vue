@@ -1,29 +1,34 @@
 <template>
-<Header :name="`${this.$route.params.id}/editor`"
-	@leave='leave'
-	@compile='compile'
-	:buttons="{ Compile: 'hammer', Leave: 'sign-out-alt' }">
-  <splitpanes horizontal class="default-theme">
-    <pane min-size="50" size="70" max-size="100">
-      <splitpanes class="default-theme">
-	<pane min-size="50" size="70" max-size="80">
-	  <div id="editor"></div>
-	</pane>
-	<pane size="20">
-	  <Dvi :data="dvi"/>
-	</pane>
-      </splitpanes>
-    </pane>
-    <pane size="30">
-      <div id="console"><pre>{{terminalOutput}}</pre></div>
-    </pane>
-  </splitpanes>
-</Header>
+  <div id="content">
+<splitpanes horizontal class="default-theme">
+  <pane min-size="50" size="70" max-size="100">
+    <splitpanes class="default-theme">
+      <pane min-size="20" size="70" max-size="80">
+	<div id="editor"  tabindex="-1" @keyup.enter="maybeCompile"></div>
+      </pane>
+      <pane class="viewer-pane">
+	  <div id="toolbar">
+	    <button id="compile" @click="compile"><font-awesome-icon icon="hammer" /> Compile</button>
+	    <span id="zoom">
+	      <label for="zoom">Zoom</label>
+	      <input name="zoom" type="number" max="300" min="20" step="10" v-model="scalePercent"/>
+	    </span>
+	  </div>
+	  <div id="viewer">
+	    <Dvi :data="dvi" v-bind:style="{zoom: `${scalePercent}%`}"/>
+	  </div>
+      </pane>
+    </splitpanes>
+  </pane>
+  <pane size="30">
+    <div id="console"><pre>{{terminalOutput}}</pre></div>
+  </pane>
+</splitpanes>
+</div>
 </template>
 
 <script>
 import { mapActions, mapState } from 'vuex';
-import Header from '@/components/Header.vue';
 import Dvi from '@/components/Dvi.vue';
 import ace from 'ace-builds/src-noconflict/ace';
 import 'ace-builds/src-min-noconflict/theme-chrome';
@@ -76,6 +81,7 @@ export default {
 
   data() {
     return {
+      scalePercent: 100,
       contentBackup: '',
       terminalOutput: '',
       dvi: undefined,
@@ -89,6 +95,13 @@ export default {
 		   'updateDocumentCursor', 'updateDocumentSelection', 
 		  ]),
 
+    maybeCompile(e) {
+      if (e.ctrlKey || e.shiftKey || e.altKey || e.metaKey) {
+	this.compile();
+	e.preventDefault();
+      }
+    },
+    
     compile() {
       console.log('COMPILOING', this.documents);
       
@@ -269,7 +282,6 @@ export default {
   },
   
   components: {
-    Header,
     Dvi,
   },
   name: 'Editor',
@@ -284,11 +296,15 @@ export default {
     overflow-x: hidden;
     overflow-y: scroll;
     height: 100%;
+    background: black;
 }
 
 #console pre {
     height: 100%;
+    padding: 6pt;
+    color: #eee;
 }
+
 
   #editor {
   height: 100% !important;
@@ -343,5 +359,46 @@ font-family: "Computer Modern Serif";
     padding-left: 6pt;
   border-bottom: 1px solid #eee;
   user-select: none;    
+  }
+
+  #content {
+      overflow: hidden;
+      padding: 0;
+      margin: 0;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-content: space-between;
+      position: relative;
+  }
+
+  .viewer-pane {
+      display: flex;
+      flex-flow: column nowrap;
+      align-items: stretch;
 }
+  
+  #toolbar {
+    padding: 3pt;
+    box-shadow: 0px 0px 15px 5px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+}
+
+
+  #viewer {
+      height: 100%;
+      width: 100%;
+      overflow-y: scroll;
+      overflow-x: scroll;
+  }
+  
+  button {
+    padding: 0;
+    margin: 0;
+    margin-right: 6pt;
+    vertical-align: top;
+}
+
+
 </style>

@@ -19,13 +19,24 @@ const filesystem = {};
 let files = [];
 let urlRoot = '';
 let currentDirectory = '';
+let texput;
 
 export function deleteEverything() {
   files = [];
 }
 
+export function setTexput(buffer) {
+  texput = Buffer.from(buffer);
+}
+
 export function writeFileSync(filename, buffer) {
-  filesystem[filename] = btoa(buffer);
+  files.push({
+    filename,
+    position: 0,
+    erstat: 0,
+    buffer: new Uint8Array(Buffer.from(buffer)),
+    descriptor: files.length,
+  });
 }
 
 export function readFileSync(filename) {
@@ -54,6 +65,17 @@ function openSync(filename, mode) {
       position: 0,
       erstat: 0,
       buffer: new Uint8Array(),
+      descriptor: files.length,
+    });
+    return files.length - 1;
+  }
+
+  if (filename === 'texput.tex') {
+    files.push({
+      filename,
+      position: 0,
+      erstat: 0,
+      buffer: new Uint8Array(texput),
       descriptor: files.length,
     });
     return files.length - 1;
