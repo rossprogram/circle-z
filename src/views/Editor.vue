@@ -87,6 +87,8 @@ export default {
       dvi: undefined,
       editor: undefined,
       cursorManager: undefined,
+      resizeObserver: undefined,
+      editorElement: undefined,
     };
   },
   
@@ -111,6 +113,7 @@ export default {
     },
 
     destroy() {
+      this.resizeObserver.observe(this.editorElement);
       this.editor.destroy();
     },
 
@@ -232,13 +235,21 @@ export default {
     
     const browserWindow = getCurrentWindow();
     browserWindow.setTitle(`${this.$route.params.id} editor - Circle Z`);
-    
+
+    this.editorElement = this.$el.querySelector('#editor');
+  
     this.editor = ace.edit('editor');
     this.editor.setTheme('ace/theme/chrome');
     this.editor.session.setMode('ace/mode/latex');
     this.editor.resize();
     this.editor.getSession().setUseWrapMode(true);
+    this.editor.setShowPrintMargin(false);
 
+    this.resizeObserver = new ResizeObserver(() => {
+      this.editor.resize();
+    });
+    this.resizeObserver.observe(this.editorElement);
+    
     this.contentBackup = undefined;
     
     this.editor.focus();
