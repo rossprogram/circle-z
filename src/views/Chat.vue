@@ -80,12 +80,36 @@ export default {
       const container = this.$el.getElementsByClassName('transcript')[0];
       container.scrollTop = container.scrollHeight;
     },
+
+    usersInRoom(currentUsers, previousUsers) {
+      currentUsers.forEach((user) => {
+	if (previousUsers.indexOf(user) < 0) {
+	  // announce that user joined
+	  this.announceUserJoin({
+	    room: this.$route.params.id,
+	    user,
+	  });
+	}
+      });
+
+      previousUsers.forEach((user) => {
+	if (currentUsers.indexOf(user) < 0) {
+	  // announce that user left
+	  this.announceUserPart({
+	    room: this.$route.params.id,
+	    user,
+	  });	  
+	}
+      });
+    },
   },
   
   methods: {
     ...mapActions([
       'sendMessage',
       'viewMessages',
+      'announceUserJoin',
+      'announceUserPart',
       'join',
       'part',
       'focus',

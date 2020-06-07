@@ -46,8 +46,10 @@ const vuexPersist = new VuexPersistence({
     port: state.port,
     email: state.email,
     password: state.password,
+    everConnected: state.everConnected,
   }),
-  filter: (mutation) => (mutation.type === 'setServerParameters'),
+  filter: (mutation) => ((mutation.type === 'setServerParameters')
+                         || (mutation.type === 'connected')),
 });
 
 export default new Vuex.Store({
@@ -682,7 +684,30 @@ export default new Vuex.Store({
     fetchRootPosts({ commit }) { // eslint-disable-line no-unused-vars
       service.getRootPosts();
     },
-    
+
+    announceUserJoin({ commit }, { room, user }) {
+      commit('pushMessage', {
+        room,
+        message: {
+          from: user,
+          join: true,
+          action: 'entered the chat',
+          timestamp: (new Date()).toString(),
+        },
+      });
+    },
+
+    announceUserPart({ commit }, { room, user }) {
+      commit('pushMessage', {
+        room,
+        message: {
+          from: user,
+          part: true,
+          action: 'left the chat',
+          timestamp: (new Date()).toString(),
+        },
+      });
+    },
   },
 
   modules: {

@@ -16,44 +16,48 @@
 	</router-link>
       </span>
     </h2>
-    
-    <h3>Rooms</h3>
-    <ul>
-      <router-link tag='li'
-		   v-for="room in sortedJoinedRooms"
+
+    <div v-if="connected">
+      <h3>Rooms</h3>
+      <ul>
+	<router-link tag='li'
+		     v-for="room in sortedJoinedRooms"
+		     v-bind:key="room"
+		     :to="{ name: 'room', params: { id: room }}">
+	  <Channel :name="room"
 		   v-bind:key="room"
-		   :to="{ name: 'room', params: { id: room }}">
-	<Channel :name="room"
-		 v-bind:key="room"
-		 :count="unreadCounts[room]"/>
-      </router-link>
-      <router-link tag='li' :to="{ name: 'rooms' }">
-	<a><font-awesome-icon icon="city" />
-	  ROOMS
-	</a>
-      </router-link>
-    </ul>
-    
-    <h3>Private Messages</h3>
-    <ul>
-      <router-link tag='li'
-		   v-for="id in sortedPrivateMessages"
-		   v-bind:key="id"
-		   :to="{ name: 'user', params: { id: id }}">
-	<Channel :name="users[id].username"
-		 :count="privateUnreadCounts[id]"/>
-      </router-link>
+		   :count="unreadCounts[room]"/>
+	</router-link>
+	<router-link tag='li' :to="{ name: 'rooms' }">
+	  <a><font-awesome-icon icon="city" />
+	    ROOMS
+	  </a>
+	</router-link>
+      </ul>
+    </div>
+
+    <div v-if="connected">
+      <h3>Private Messages</h3>
+      <ul>
+	<router-link tag='li'
+		     v-for="id in sortedPrivateMessages"
+		     v-bind:key="id"
+		     :to="{ name: 'user', params: { id: id }}">
+	  <Channel :name="users[id].username"
+		   :count="privateUnreadCounts[id]"/>
+	</router-link>
       
-      <router-link tag='li' :to="{ name: 'users' }">
-	<a><font-awesome-icon icon="users" />
-	  PEOPLE
-	</a>
-      </router-link>
-    </ul> 
+	<router-link tag='li' :to="{ name: 'users' }">
+	  <a><font-awesome-icon icon="users" />
+	    PEOPLE
+	  </a>
+	</router-link>
+      </ul>
+    </div>
     
     <h3></h3>     
     <ul>
-      <router-link tag='li' class="forum" :to="{ name: 'forum' }">
+      <router-link v-if="connected" tag='li' class="forum" :to="{ name: 'forum' }">
 	<a><font-awesome-icon icon="mail-bulk" />
 	  FORUM
 	</a>

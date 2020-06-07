@@ -369,6 +369,5 @@ export function connect(options) {
     emitter.emit('error', err);
   });
 
-  
   return emitter;
 }

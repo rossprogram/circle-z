@@ -19,8 +19,13 @@
       <div v-if="everConnected === false">
 	<h3>First time here?</h3>
 	<p>If this is your first time here, you should head to 
-	  <router-link :to="{ name: 'settings' }">Settings</router-link>
-	  to configure your connection.
+	  <router-link :to="{ name: 'settings'
+			    }">Settings</router-link> to configure your connection.</p>
+	<p>
+	  Make sure that you have installed <a target="_blank"
+	  @click.prevent="openExternalBrowser"
+	  href="https://www.mumble.info/">Mumble</a>, the low-latency
+	  high-quality voice chat system that Circle ℤ uses for audio.
 	</p>
 	<p>After you've connected, you can visit the various rooms and
 	discuss mathematical ideas with your friends.</p>

@@ -33,10 +33,10 @@
       </span>
     </div>
     <div id="desktop">
-      <canvas @mousedown='mousedown' id="canvas"/>
+      <canvas @pointerdown='pointerdown' id="canvas"/>
       <div class="pointer" v-for="id in blackboardUsers" :key="id"
 	   :style="blackboardPointerStyle(id)">
-	<span class="username" :style="{background: stringToColor(id)}"
+	<span v-if="self.id !== id" class="username" :style="{background: stringToColor(id)}"
 	      >{{ users[id] ? users[id].username : '???' }}</span>
       </div>
     </div>
@@ -64,7 +64,7 @@ function showErrorBox(e) {
 
 export default {
   computed: {
-    ...mapState(['users', 'connected', 'blackboards', 'pointers']),
+    ...mapState(['users', 'connected', 'blackboards', 'pointers', 'self']),
     
     blackboard() {
       return this.blackboards[this.$route.params.id];
@@ -140,11 +140,8 @@ export default {
       
       drawnInk: {},
       
-      previousX: 0,
-      previousY: 0,
-      currentX: 0,
       currentInk: undefined,
-      currentY: 0,
+      inkSoFar: 0,
       currentStyle: 'pen',
       
       canvas: undefined,
@@ -222,7 +219,7 @@ export default {
 	    if (err) {
 	      showErrorBox(err.toString());
 	    } else if (data.length > 1024 * 1024) {
-		showErrorBox('Your PDF file must be under 1 megabyte; large files result in a suboptimal multi-user experience.');
+		showErrorBox('Your PDF file must be under 1 megabyte; large files result in a less than optimal multi-user experience.');
 	      } else {
 		const loadingTask = pdfjs.getDocument(data);
 		loadingTask.promise.then(() => {
@@ -242,16 +239,17 @@ export default {
     },
 
     drawPage() {
+      this.ctx.globalCompositeOperation = 'source-over';
+	
       if (this.page) {
+
 	const renderContext = {
 	  canvasContext: this.ctx,
 	  viewport: this.viewport,
 	};
 	const renderTask = this.page.render(renderContext);
 	
-	console.log('starting render...');
 	renderTask.promise.then(() => {
-	  console.log('render done');
 	  this.drawnInk = {};
 	  this.drawInk();
 	});
@@ -314,11 +312,8 @@ export default {
       });
     },
 
-    // https://pspdfkit.com/blog/2019/using-getcoalescedevents/
-    handleDrawing(mode, e) {
-      this.previousX = this.currentX;
-      this.previousY = this.currentY;
-
+    eventToPoint(e) {
+      const result = {};
       const dpr = window.devicePixelRatio || 1;
       
       const rect = this.canvas.getBoundingClientRect();
@@ -326,56 +321,59 @@ export default {
       const scaleY = this.canvas.height / rect.height;
 
       if (e.touches && e.touches.length === 1) {
-	this.currentX = ((e.touches[0].clientX - rect.left) * scaleX) / dpr;
-	this.currentY = ((e.touches[0].clientY - rect.top) * scaleY) / dpr;
+	result.x = ((e.touches[0].clientX - rect.left) * scaleX) / dpr;
+	result.y = ((e.touches[0].clientY - rect.top) * scaleY) / dpr;
       } else {
-	this.currentX = ((e.clientX - rect.left) * scaleX) / dpr;
-	this.currentY = ((e.clientY - rect.top) * scaleY) / dpr;
+	result.x = ((e.clientX - rect.left) * scaleX) / dpr;
+	result.y = ((e.clientY - rect.top) * scaleY) / dpr;
       }
 
-      this.currentX /= this.scale;
-      this.currentY /= this.scale;
-      
-      if (e.type === 'mousedown' || e.type === 'touchstart') {
-	this.currentInk = [{ x: this.currentX, y: this.currentY }];
-      }
-      
-      if (e.type === 'mouseup' || e.type === 'mouseout' || e.type === 'touchend') {
-	// send ink!
-	if (this.currentInk) {
-	  const uuid = uuidv4();
-	  this.addBlackboardInk({
-	    id: this.$route.params.id,
-	    uuid,
-	    style: this.currentStyle,
-	    points: this.currentInk, 
-	  });
-	  this.drawnInk[uuid] = true;
-	  this.currentInk = undefined;
+      result.x /= this.scale;
+      result.y /= this.scale;
+
+      return result;
+    },
+    
+    // https://pspdfkit.com/blog/2019/using-getcoalescedevents/
+    drawNewInk() {
+      if (this.currentInk) {
+	this.ctx.beginPath();
+	this.useStyle(this.currentStyle);
+
+	const p = this.currentInk[this.inkSoFar];
+	this.ctx.moveTo(p.x * this.scale, p.y * this.scale);
+
+	for (let i = this.inkSoFar + 1; i < this.currentInk.length; i += 1) {
+	  const q = this.currentInk[i];
+          this.ctx.lineTo(q.x * this.scale, q.y * this.scale);
 	}
-      }
+
+	this.inkSoFar = this.currentInk.length - 1;
       
-      if (e.type === 'mousemove' || e.type === 'touchmove') {
-	if (this.currentInk) {
-	  this.currentInk.push({ x: this.currentX, y: this.currentY });
-          this.ctx.beginPath();
-          this.ctx.moveTo(this.previousX * this.scale, this.previousY * this.scale);
-          this.ctx.lineTo(this.currentX * this.scale, this.currentY * this.scale);
-	  this.useStyle(this.currentStyle);
-          this.ctx.stroke();
-          this.ctx.closePath();
-	} else {
-	  this.updateMousePosition(this, { x: this.currentX, y: this.currentY });
-	}
+	this.ctx.stroke();
+	this.ctx.closePath();
       }
     },
     
-    mousedown(e) {
-      this.handleDrawing('mousedown', e);
+    pointerdown(e) {
+      const point = this.eventToPoint(e);
+      this.currentInk = [point];
+      this.inkSoFar = 0;
     },
 
-    mouseup(e) {
-      this.handleDrawing('mouseup', e);
+    pointerup() {
+      // send ink!
+      if (this.currentInk) {
+	const uuid = uuidv4();
+	this.addBlackboardInk({
+	  id: this.$route.params.id,
+	  uuid,
+	  style: this.currentStyle,
+	  points: this.currentInk, 
+	});
+	this.drawnInk[uuid] = true;
+	this.currentInk = undefined;
+      }
     },
 
     updateMousePosition: throttle((self, position) => {
@@ -385,23 +383,23 @@ export default {
       });
     }, 100), // this is pretty slow
     
-    mousemove(e) {
-      this.handleDrawing('mousemove', e);
-    },
-    
-    touchend(e) {
-      this.handleDrawing('touchend', e);
-    },
-    
-    touchstart(e) {
-      console.log(e);
-      this.handleDrawing('touchstart', e);
+    pointermove(e) {
+      if (this.currentInk) {
+	const events = e.getCoalescedEvents();
+	
+	events.forEach((event) => {
+	  const point = this.eventToPoint(event);
+	  this.currentInk.push(point);
+	});
+	
+	window.requestAnimationFrame(this.drawNewInk);
+	//this.drawNewInk();
+      } else {
+	const point = this.eventToPoint(e);
+	this.updateMousePosition(this, point);
+      }
     },
 
-    touchmove(e) {
-      this.handleDrawing('touchmove', e);
-    },
-    
     handleResize() {
       const dpr = window.devicePixelRatio || 1;
 
@@ -447,14 +445,6 @@ export default {
   },
   
   watch: {
-    blackboardPointers: {
-      deep: true,
-      handler() {
-	console.log(this.blackboardPointers);
-	
-      },
-    },
-    
     viewport() {
       this.handleResize();
     },
@@ -504,19 +494,13 @@ export default {
 	}
       },
     },
-
-    //connected(isConnected) {
-      // this.editor.setReadOnly(!isConnected);
-    //},
   },
 
   beforeDestroy() {
     window.removeEventListener('resize', this.handleResize);
-    window.removeEventListener('mouseup', this.mouseup);
-    window.removeEventListener('mousemove', this.mousemove);
-    window.removeEventListener('touchstart', this.touchstart);
-    window.removeEventListener('touchend', this.touchend);
-    window.removeEventListener('touchmove', this.touchmove);
+    
+    window.removeEventListener('pointerup', this.pointerup);
+    window.removeEventListener('pointermove', this.pointermove);
   },
   
   mounted() {
@@ -530,11 +514,8 @@ export default {
 
     this.ctx = this.canvas.getContext('2d');
 
-    window.addEventListener('mouseup', this.mouseup);
-    window.addEventListener('mousemove', this.mousemove);
-    window.addEventListener('touchend', this.touchend);
-    window.addEventListener('touchmove', this.touchmove);
-    window.addEventListener('touchstart', this.touchstart);
+    window.addEventListener('pointerup', this.pointerup);
+    window.addEventListener('pointermove', this.pointermove);
     
     window.addEventListener('resize', this.handleResize);
 

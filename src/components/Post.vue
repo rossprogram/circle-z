@@ -238,7 +238,9 @@ export default {
 }
 
 .byline {
+    font-size: 80%;
     color: #888;
+    padding-top: 3pt;
     padding-bottom: 3pt;
 }
 

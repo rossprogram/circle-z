@@ -168,7 +168,6 @@ app.on('ready', async () => {
   }
   createWindow();
   store.dispatch('initialize');
-  console.log(store);
 });
            
 // Exit cleanly on request from parent process in development mode.
