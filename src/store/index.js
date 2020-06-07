@@ -413,6 +413,9 @@ export default new Vuex.Store({
 
       server.on('users', (users) => {
         commit('updateUsers', users);
+        
+        // FIXME: this is a real hack -- it propagates state.self to other copies of the store
+        if (state.self) commit('setSelf', state.self);
       });
 
       server.on('rooms', (rooms) => {

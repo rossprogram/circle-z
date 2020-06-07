@@ -85,7 +85,7 @@ export default {
   },
   
   methods: {
-    ...mapActions(['updateDocument', 'fetchDocument',
+    ...mapActions(['updateDocument', 'fetchDocument', 'who',
 		   'updateDocumentCursor', 'updateDocumentSelection', 
 		  ]),
 
@@ -122,6 +122,9 @@ export default {
     documentCursors: {
       deep: true,
       handler(value) {
+	console.log('self=', this.self);
+	console.log('state=', this.$store.state);
+
 	Object.keys(value).forEach((userId) => {
 	  if (userId !== this.self.id) {
 	    const cursor = value[userId];
@@ -166,10 +169,12 @@ export default {
 	return;
       }
       
-      const diff = diffMatchPatch.diff_main(this.contentBackup, this.document, true);
-
       const doc = this.editor.getSession().getDocument();
-
+      
+      const patches = diffMatchPatch.patch_make(this.contentBackup, this.document);
+      const results = diffMatchPatch.patch_apply(patches, this.editor.getValue());
+      const diff = diffMatchPatch.diff_main(this.editor.getValue(), results[0], true);
+      
       // https://stackoverflow.com/questions/25083183/how-can-i-get-and-patch-diffs-in-ace-editor
       let offset = 0;
       diff.forEach((chunk) => {
@@ -189,14 +194,15 @@ export default {
 	}
       });
       
-      this.contentBackup = this.document;
+      this.contentBackup = this.editor.getValue();
     },
   },
   
   mounted() {
     console.log('MOUNTED');
     console.log('contentBackup', this.contentBackup === undefined);
-    
+
+    this.who();
     this.fetchDocument(this.$route.params.id);
     
     ipcRenderer.on('dvi', (event, arg) => {
@@ -218,6 +224,7 @@ export default {
     this.editor.setTheme('ace/theme/chrome');
     this.editor.session.setMode('ace/mode/latex');
     this.editor.resize();
+    this.editor.getSession().setUseWrapMode(true);
 
     this.contentBackup = undefined;
     
@@ -236,7 +243,7 @@ export default {
       }
       
       this.contentBackup = content;
-    }, 151 /* milliseconds debounce */));
+    }, 51 /* milliseconds debounce */));
 
     // Emitted when the cursor position changes.
     this.editor.getSelection().on('changeCursor', debounce(() => {
