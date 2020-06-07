@@ -147,6 +147,7 @@ export default {
       canvas: undefined,
       overlay: undefined,
       ctx: undefined,
+      renderTask: undefined,
     };
   },
   
@@ -239,20 +240,24 @@ export default {
     },
 
     drawPage() {
-      this.ctx.globalCompositeOperation = 'source-over';
-	
+      this.ctx.beginPath();
+      
       if (this.page) {
-
 	const renderContext = {
 	  canvasContext: this.ctx,
 	  viewport: this.viewport,
 	};
-	const renderTask = this.page.render(renderContext);
+	if (this.renderTask === undefined) {
+	  this.renderTask = this.page.render(renderContext);
 	
-	renderTask.promise.then(() => {
-	  this.drawnInk = {};
-	  this.drawInk();
-	});
+	  this.renderTask.promise.then(() => {
+	    this.drawnInk = {};
+	    this.drawInk();
+	    this.renderTask = undefined;
+	  });
+	} else {
+	  console.log('ALREADY RENDERING!');
+	}
       } else {
 	this.ctx.fillStyle = 'white';
 	this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -295,8 +300,8 @@ export default {
 	  this.drawnInk[path.uuid] = true;
 
 	  if (path.points) {
-	    this.useStyle(path.style);
             this.ctx.beginPath();
+	    this.useStyle(path.style);
             this.ctx.moveTo(path.points[0].x * this.scale,
 			    path.points[0].y * this.scale);
 	    for (let i = 1; i < path.points.length; i += 1) {
@@ -304,12 +309,12 @@ export default {
 			      path.points[i].y * this.scale);
 	    }
             this.ctx.stroke();
-            this.ctx.closePath();
 	  } else {
 	    console.log('bad path', path);
 	  }
 	}
       });
+
     },
 
     eventToPoint(e) {
@@ -442,6 +447,16 @@ export default {
       }
     },
 
+    keypress(e) {
+      const key = String.fromCharCode(e.keyCode);
+
+      if (key === '+') this.scalePercent += 10;
+      if (key === '-') this.scalePercent -= 10;
+      if (key === '1') this.currentStyle = 'pen';
+      if (key === '2') this.currentStyle = 'highlighter';
+      if (key === '3') this.currentStyle = 'red';
+      if (key === '4') this.currentStyle = 'erase';
+    },
   },
   
   watch: {
@@ -501,6 +516,7 @@ export default {
     
     window.removeEventListener('pointerup', this.pointerup);
     window.removeEventListener('pointermove', this.pointermove);
+    window.removeEventListener('keypress', this.keypress);
   },
   
   mounted() {
@@ -513,11 +529,13 @@ export default {
     this.canvas = document.getElementById('canvas');
 
     this.ctx = this.canvas.getContext('2d');
-
+    
     window.addEventListener('pointerup', this.pointerup);
     window.addEventListener('pointermove', this.pointermove);
     
     window.addEventListener('resize', this.handleResize);
+
+    window.addEventListener('keypress', this.keypress);
 
     this.handleResize();
   },
