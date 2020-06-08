@@ -21,6 +21,7 @@ if (electron) {
 }
 
 const vuexPersist = new VuexPersistence({
+  storage: {},
   saveState: (_, state) => {
     try {
       fs.writeFileSync(path.join(persistPath, 'store.json'),
