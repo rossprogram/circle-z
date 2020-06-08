@@ -413,7 +413,7 @@ export default new Vuex.Store({
       state.joinedChannels.forEach(service.join);
     },
 
-    initialize({ state, commit }) {
+    initialize({ commit }) {
       commit('disconnected');
     },
     

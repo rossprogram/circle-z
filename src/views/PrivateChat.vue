@@ -17,6 +17,7 @@
 	  <ChatEvent style="opacity: 0.5;" :actor="self.id" :key="commandline" :message="commandline"/>
 	</div>
 	<input type="text" v-model="commandline" class="message"
+	       v-if="user.isConnected"
 	       v-on:keyup.enter="processCommand"
 	       placeholder="Type your message…"/>
       </div>
