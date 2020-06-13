@@ -69,6 +69,12 @@
 	</span>
       </li>
 
+      <li class="zoom" @click="zoom">
+	<span><font-awesome-icon icon="video" />
+	  ZOOM
+	</span>
+      </li>
+
       <li v-if="connected" class="mumble" @click="mumble">
 	<span><font-awesome-icon icon="microphone" />
 	  MUMBLE
@@ -151,6 +157,9 @@ export default {
     },
     twitch() {
       remote.shell.openExternal('https://www.twitch.tv/rossmath');
+    },
+    zoom() {
+      remote.shell.openExternal('https://zoom.us/my/rossmath?pwd=R2dSMG1ETDltRVNGT2tvT1hDcEg5dz09');
     },
     mumble() {
       remote.shell.openExternal(this.mumbleUrl);
