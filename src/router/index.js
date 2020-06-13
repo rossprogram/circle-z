@@ -9,6 +9,7 @@ import UserList from '../views/UserList.vue';
 import Settings from '../views/Settings.vue';
 import Editor from '../views/Editor.vue';
 import Blackboard from '../views/Blackboard.vue';
+import Auditorium from '../views/Auditorium.vue';
 
 Vue.use(VueRouter);
 
@@ -38,6 +39,15 @@ const routes = [
     path: '/forum/:id?',
     name: 'forum',
     component: Forum,
+  },
+  
+  {
+    path: '/auditorium',
+    name: 'auditorium',
+    component: Auditorium,
+    meta: {
+      fullscreen: true,
+    },
   },
   
   {

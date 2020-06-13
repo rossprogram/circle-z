@@ -51,9 +51,6 @@
     </div>
 
     <hr/>
-    <button :disabled="!connected" @click="launchMumble"
-	    ><font-awesome-icon icon="sign-in-alt" /> Launch mumble</button>
-
     <div v-if="connected">
       <p>As of {{ pingTimeRelative }}, there
 	{{ (connectedUserCount === 1) ? 'was' : 'were' }} {{ connectedUserCount }} connected
@@ -70,10 +67,8 @@
 <script>
 // @ is an alias to /src
 import Header from '@/components/Header.vue';
-import { mapActions, mapState, mapGetters } from 'vuex';
+import { mapActions, mapState } from 'vuex';
 import moment from 'moment';
-
-const { remote } = require('electron');
 
 export default {
   name: 'Settings',
@@ -90,8 +85,6 @@ export default {
 		 'serverMemoryUsed',
 		 'serverTime', 'pingTime',
 		]),
-    ...mapGetters(['mumbleUrl',
-		  ]),
 
     pingTimeRelative() {
       return moment(this.pingTime).fromNow();
@@ -112,9 +105,6 @@ export default {
       'updateServerParameters',
     ]),
 
-    launchMumble() {
-      remote.shell.openExternal(this.mumbleUrl);
-    },
 
     updatePassword(e) {
       this.updateServerParameters({ password: e.target.value });

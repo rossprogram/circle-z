@@ -5,8 +5,10 @@ import {
   faFilePdf, faChalkboard, faCog, faCity, faHashtag, faExclamationTriangle, faSync,
   faInfoCircle, faSignOutAlt, faSignInAlt, faExchangeAlt, faUsers, faPencilAlt, faVideo,
   faStepForward, faStepBackward, faEraser, faHammer, faMailBulk, faReply,
-  faThumbsUp, faThumbsDown, faClock, faPaperPlane, faLevelUpAlt,
+  faThumbsUp, faThumbsDown, faClock, faPaperPlane, faLevelUpAlt, faFilm,
+  faMicrophone,
 } from '@fortawesome/free-solid-svg-icons';
+import { faTwitch } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import App from './App.vue';
 import router from './router';
@@ -14,16 +16,19 @@ import store from './store';
 
 import 'splitpanes/dist/splitpanes.css';
 
-library.add(faCog,
+library.add(faTwitch,
+            faCog,
             faFilePdf,
             faCity,
             faPaperPlane,
             faHashtag,
+            faMicrophone,
             faExclamationTriangle,
             faExchangeAlt,
             faEraser,
             faLevelUpAlt,
             faSync,
+            faFilm,
             faHammer,
             faMailBulk,
             faClock,

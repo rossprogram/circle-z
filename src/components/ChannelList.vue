@@ -54,9 +54,27 @@
 	</router-link>
       </ul>
     </div>
-    
+
     <h3></h3>     
     <ul>
+      <li class="auditorium" @click="auditorium">
+	<span><font-awesome-icon icon="film" />
+	  AUDITORIUM
+	</span>
+      </li>
+
+      <li class="twitch" @click="twitch">
+	<span><font-awesome-icon :icon="['fab', 'twitch']" />
+	  TWITCH
+	</span>
+      </li>
+
+      <li v-if="connected" class="mumble" @click="mumble">
+	<span><font-awesome-icon icon="microphone" />
+	  MUMBLE
+	</span>
+      </li>
+
       <router-link v-if="connected" tag='li' class="forum" :to="{ name: 'forum' }">
 	<span><font-awesome-icon icon="mail-bulk" />
 	  FORUM
@@ -78,8 +96,10 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 import Channel from './Channel.vue';
+
+const { remote } = require('electron');
 
 export default {
   computed: {
@@ -87,6 +107,9 @@ export default {
 		 'unreadCounts', 'joinedRooms',
 		 'privateTranscripts', 'users', 'privateUnreadCounts',
 		]),
+
+    ...mapGetters(['mumbleUrl',
+		  ]),
 
     sortedJoinedRooms: {
       get() {
@@ -118,6 +141,21 @@ export default {
   },
 
   methods: {
+    auditorium() {
+      const routeData = this.$router.resolve({
+	name: 'auditorium',
+      });
+      // to ensure I only have one of each window open, use the href
+      // as the frame id
+      window.open(routeData.href, routeData.href);
+    },
+    twitch() {
+      remote.shell.openExternal('https://www.twitch.tv/rossmath');
+    },
+    mumble() {
+      remote.shell.openExternal(this.mumbleUrl);
+    },
+
   },
   
   name: 'ChannelList',
