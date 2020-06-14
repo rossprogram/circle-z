@@ -7,7 +7,7 @@
     <div class="card-item" v-for="id in filteredUserIds" v-bind:key="id">
       <div class="card" @click="gotoUser(id)">
 	<span class="user">
-	  <span class="username">{{ users[id].username }}</span>
+	  <User :userId="id"/>
 	  <span class="realname">{{ users[id].firstName }} {{ users[id].lastName }}</span>	  
 	</span>
       </div>
@@ -19,12 +19,14 @@
 
 <script>
 import Header from '@/components/Header.vue';
+import User from '@/components/User.vue';
 import { mapActions, mapState } from 'vuex';
 
 export default {
   name: 'UserList',
   components: {
     Header,
+    User,
   },
 
   data() {
@@ -128,6 +130,11 @@ margin-bottom: 6pt;
 .channel-name {
 font-weight: bold;
   margin-left: 2pt;
+}
+
+.realname {
+      font-style: italic;
+      float: right;
 }
 
 </style>

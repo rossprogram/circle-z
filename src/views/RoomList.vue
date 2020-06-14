@@ -14,6 +14,7 @@
 	    <font-awesome-icon icon="hashtag"
 			       v-for="n in roomname.replace(/[^#]/g,'').length" v-bind:key="n" />
 	  </span><span class="room-name">{{ roomname.replace(/#/g,'') }}</span>
+	  <span><Tex>{{rooms[roomname].topic}}</Tex></span>
 	</span>
 	<span class="user-count">
 	  {{ rooms[roomname].users.length }}
@@ -46,6 +47,7 @@
 
 <script>
 import Header from '@/components/Header.vue';
+import Tex from '@/components/Tex';
 import User from '@/components/User.vue';
 import { mapActions, mapState } from 'vuex';
 
@@ -53,6 +55,7 @@ export default {
   name: 'RoomList',
   components: {
     Header,
+    Tex,
     User,
   },
 
@@ -89,10 +92,13 @@ export default {
     filteredRooms: {
       get() {
 	const nonemptyRooms = Object.keys(this.rooms)
-	    .filter((name) => this.rooms[name].users.length > 0);
+	      .filter((name) => (this.rooms[name].users.length > 0));
 	
 	return nonemptyRooms.filter(
-	  (name) => name.toLowerCase().includes(this.search.toLowerCase()),
+	  (name) => (name.toLowerCase().includes(this.search.toLowerCase())
+		    || (this.rooms[name].topic
+		     && this.rooms[name].topic.includes(this.search.toLowerCase()))
+		   ),
 	).sort();
       },
     },

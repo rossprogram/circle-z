@@ -1,6 +1,6 @@
 <template>
   <div class="channel-list">
-    <h2>{{ server }}
+    <h2><img src="../assets/icon.png"/>
       <span class="disconnected"
 	    title="You are disconnected."
 	    v-if="connected === false && (connecting === false)">
@@ -177,6 +177,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
+
 li {
     padding: 6pt;
 }
@@ -233,6 +234,14 @@ li a {
     overflow-y: auto;
     overflow-x: hidden;
     user-select: none;    
+}
+
+h2 img {
+    width: 16pt;
+    height: 16pt;
+    filter: invert(1);
+    mix-blend-mode: lighten;
+    opacity: 0.3;
 }
 
 h2 {

@@ -42,6 +42,14 @@ export function join(channel) {
   });
 }
 
+export function topic(channel, text) {
+  theSocket.sendMessage({
+    type: 'topic',
+    name: channel,
+    topic: text,
+  });
+}
+
 export function part(channel) {
   theSocket.sendMessage({
     type: 'part',
@@ -300,6 +308,7 @@ const callbacks = {
   rooms,
   say: onSay,
   privmsg: onPrivmsg,
+  topic,
   
   setClientDocument,
   patchClientDocument,

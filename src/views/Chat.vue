@@ -113,6 +113,7 @@ export default {
       'join',
       'part',
       'focus',
+      'topic',
     ]),
 
     editor() {
@@ -154,6 +155,22 @@ export default {
     },
 
     processCommand() {
+      if (this.commandline.match(/^\/topic *$/)) {
+	this.topic({
+	  room: this.$route.params.id,
+	  topic: '',
+	});
+	this.commandline = '';
+	return;
+      } if (this.commandline.match(/^\/topic /)) {
+	this.topic({
+	  room: this.$route.params.id,
+	  topic: this.commandline.slice(7), 
+	});
+	this.commandline = '';
+	return;
+      }
+      
       this.sendMessage({
 	room: this.$route.params.id,
 	message: this.commandline, 

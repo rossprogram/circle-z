@@ -176,7 +176,7 @@ export default new Vuex.Store({
 
     updateRooms(state, rooms) {
       rooms.forEach((room) => {
-        const { name, users } = room;
+        const { name, users, topic } = room;
 
         if (state.roomnames.indexOf(name) < 0) {
           state.roomnames.push(name);
@@ -184,6 +184,7 @@ export default new Vuex.Store({
         }
 
         Vue.set(state.rooms[name], 'users', users);
+        Vue.set(state.rooms[name], 'topic', topic);
       });
     },
     
@@ -388,6 +389,10 @@ export default new Vuex.Store({
     quit({ commit }) { // eslint-disable-line no-unused-vars
       service.quit();
     },
+
+    topic({ commit }, { room, topic }) { // eslint-disable-line no-unused-vars
+      service.topic(room, topic);
+    },    
     
     join({ commit }, { room }) { // eslint-disable-line no-unused-vars
       service.join(room);
