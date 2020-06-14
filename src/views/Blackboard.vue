@@ -254,9 +254,11 @@ export default {
 	    this.drawnInk = {};
 	    this.drawInk();
 	    this.renderTask = undefined;
+	  }).catch(() => {
+	    this.renderTask = undefined;	    
 	  });
 	} else {
-	  console.log('ALREADY RENDERING!');
+	  console.log('Already rendering.');
 	}
       } else {
 	this.ctx.fillStyle = 'white';
