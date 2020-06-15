@@ -1,6 +1,6 @@
 {
   "name": "circle-z",
-  "version": "0.16.3"
+  "version": "0.16.3",
   "description": "A chat client for online math courses",
   "scripts": {
     "serve": "vue-cli-service serve",
