@@ -225,6 +225,20 @@ export function getRootPosts() {
   });
 }
 
+export function getVideos() {
+  theSocket.sendMessage({
+    type: 'getVideos',
+  });
+}
+
+export function getVideo(video) {
+  console.log('video=', video);
+  theSocket.sendMessage({
+    type: 'getVideo',
+    video,
+  });
+}
+
 function error(socket, emitter, data) {
   emitter.emit('error', data.error);
 }
@@ -300,6 +314,14 @@ function ping(socket, emitter, data) {
   emitter.emit('ping', data);
 }
 
+function setVideos(socket, emitter, data) {
+  emitter.emit('setVideos', data.videos);
+}
+
+function playVideo(socket, emitter, data) {
+  emitter.emit('playVideo', data.url);
+}
+
 const callbacks = {
   error,
   login,
@@ -323,6 +345,8 @@ const callbacks = {
   addPosts,
 
   ping,
+  setVideos,
+  playVideo,
 };
 
 function handleMessage(socket, emitter, data) {

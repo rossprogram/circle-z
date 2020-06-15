@@ -10,6 +10,7 @@ import Settings from '../views/Settings.vue';
 import Editor from '../views/Editor.vue';
 import Blackboard from '../views/Blackboard.vue';
 import Auditorium from '../views/Auditorium.vue';
+import Videos from '../views/Videos.vue';
 
 Vue.use(VueRouter);
 
@@ -39,6 +40,12 @@ const routes = [
     path: '/forum/:id?',
     name: 'forum',
     component: Forum,
+  },
+
+  {
+    path: '/videos',
+    name: 'videos',
+    component: Videos,
   },
   
   {

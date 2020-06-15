@@ -6,7 +6,7 @@ import {
   faInfoCircle, faSignOutAlt, faSignInAlt, faExchangeAlt, faUsers, faPencilAlt, faVideo,
   faStepForward, faStepBackward, faEraser, faHammer, faMailBulk, faReply,
   faThumbsUp, faThumbsDown, faClock, faPaperPlane, faLevelUpAlt, faFilm,
-  faMicrophone,
+  faMicrophone, faSchool,
 } from '@fortawesome/free-solid-svg-icons';
 import { faTwitch } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
@@ -21,6 +21,7 @@ library.add(faTwitch,
             faFilePdf,
             faCity,
             faPaperPlane,
+            faSchool,
             faHashtag,
             faMicrophone,
             faExclamationTriangle,

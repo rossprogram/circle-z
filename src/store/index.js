@@ -98,6 +98,9 @@ export default new Vuex.Store({
     serverMemoryUsed: 0,
     serverTime: undefined,
     pingTime: undefined,
+
+    videos: [],
+    playingVideo: '',
   },
 
   getters: {
@@ -146,6 +149,14 @@ export default new Vuex.Store({
     setSelf(state, self) {
       state.self = self;
     },
+
+    updateVideos(state, videos) {
+      state.videos = videos;
+    },
+
+    updatePlayingVideo(state, playingVideo) {
+      state.playingVideo = playingVideo;
+    },        
 
     updateUsers(state, users) {
       users.forEach((user) => {
@@ -432,6 +443,14 @@ export default new Vuex.Store({
         password: state.password,
       });
 
+      server.on('setVideos', (videos) => {
+        commit('updateVideos', videos);
+      });
+
+      server.on('playVideo', (video) => {
+        commit('updatePlayingVideo', video);
+      });      
+      
       server.on('users', (users) => {
         commit('updateUsers', users);
         
@@ -729,6 +748,14 @@ export default new Vuex.Store({
         },
       });
     },
+
+    getVideos() {
+      service.getVideos();
+    },
+
+    getVideo({ commit }, { video }) { // eslint-disable-line no-unused-vars
+      service.getVideo(video);
+    },    
   },
 
   modules: {

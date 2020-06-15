@@ -1,20 +1,7 @@
 <template>
   <div class="channel-list">
-    <h2><img src="../assets/icon.png"/>
-      <span class="disconnected"
-	    title="You are disconnected."
-	    v-if="connected === false && (connecting === false)">
-	<router-link :to="{ name: 'settings' }">
-	  <font-awesome-icon icon="exclamation-triangle" />
-	</router-link>
-      </span>
-      <span class="connecting"
-	    title="Connecting…"
-	    v-if="connected === false && (connecting === true)">
-	<router-link :to="{ name: 'settings' }">
-	  <font-awesome-icon icon="sync" />
-	</router-link>
-      </span>
+    <h2>
+      <img src="../assets/icon.png"/>
     </h2>
 
     <div v-if="connected">
@@ -57,8 +44,14 @@
 
     <h3></h3>     
     <ul>
-      <li class="auditorium" @click="auditorium">
+      <router-link v-if="connected" tag='li' class="videos" :to="{ name: 'videos' }">
 	<span><font-awesome-icon icon="film" />
+	  VIDEOS
+	</span>
+      </router-link>
+
+      <li class="auditorium" @click="auditorium">
+	<span><font-awesome-icon icon="school" />
 	  AUDITORIUM
 	</span>
       </li>
@@ -88,8 +81,15 @@
       </router-link>
 
       <router-link tag='li' :to="{ name: 'settings' }">
-	<span><font-awesome-icon icon="cog" />
-	  SETTINGS</span>
+	<span class="disconnected"
+	      title="You are disconnected."
+	      v-if="connected === false && (connecting === false)">
+	  <font-awesome-icon icon="exclamation-triangle" />
+	  SETTINGS
+	</span>
+	<span v-else><font-awesome-icon icon="cog" />
+	  SETTINGS
+	</span>
       </router-link>
       <router-link tag='li' :to="{ name: 'about' }">
 	<span><font-awesome-icon icon="info-circle" />
@@ -201,7 +201,7 @@ li a {
   100% { opacity: 1; }
 }
   
-.disconnected a {
+.disconnected svg {
     color: yellow;
     animation: pulse 1s linear infinite;
 }
