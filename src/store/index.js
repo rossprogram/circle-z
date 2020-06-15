@@ -85,10 +85,7 @@ export default new Vuex.Store({
     connected: false,
     connecting: false,
     
-    mumblePort: 64738,
-    // mumbleServer: 'irc.rossprogram.org',
-    
-    server: 'mumble.rossprogram.org',
+    server: 'circlez.rossprogram.org',
     port: 7817,
     email: '',
     password: '',
@@ -108,9 +105,11 @@ export default new Vuex.Store({
       if (state.self && state.self.username && state.self.mumblePassword) {
         const { username } = state.self;
         const password = state.self.mumblePassword;
-        return `mumble://${username}:${password}@${state.server}:${state.mumblePort}/`;
+        const server = state.self.mumbleServer;
+        const port = state.self.mumblePort;
+        return `mumble://${username}:${password}@${server}:${port}/`;
       } 
-        return `mumble://${state.server}:${state.mumblePort}/`;
+        return `mumble://${state.server}/`;
     },
   },
   
