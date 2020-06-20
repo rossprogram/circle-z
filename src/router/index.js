@@ -8,7 +8,7 @@ import RoomList from '../views/RoomList.vue';
 import UserList from '../views/UserList.vue';
 import Settings from '../views/Settings.vue';
 import Editor from '../views/Editor.vue';
-import Blackboard from '../views/Blackboard.vue';
+import Chalkboard from '../views/Chalkboard.vue';
 import Auditorium from '../views/Auditorium.vue';
 import Videos from '../views/Videos.vue';
 
@@ -58,9 +58,9 @@ const routes = [
   },
   
   {
-    path: '/rooms/:id/blackboard',
-    name: 'blackboard',
-    component: Blackboard,
+    path: '/rooms/:id/chalkboard',
+    name: 'chalkboard',
+    component: Chalkboard,
     meta: {
       fullscreen: true,
     },

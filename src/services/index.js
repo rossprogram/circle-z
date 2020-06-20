@@ -78,6 +78,14 @@ export function say(room, text) {
   });
 }
 
+export function emote(room, text) {
+  theSocket.sendMessage({
+    type: 'emote',
+    room,
+    text,
+  });
+}
+
 export function privmsg(user, text) {
   theSocket.sendMessage({
     type: 'privmsg',
@@ -264,6 +272,10 @@ function onSay(socket, emitter, data) {
   emitter.emit('say', data.room, data.from, data.text);
 }
 
+function onEmote(socket, emitter, data) {
+  emitter.emit('emote', data.room, data.from, data.text);
+}
+
 function onPrivmsg(socket, emitter, data) {
   emitter.emit('privmsg', data.from, data.text);
 }
@@ -329,6 +341,7 @@ const callbacks = {
   users,
   rooms,
   say: onSay,
+  emote: onEmote,
   privmsg: onPrivmsg,
   topic,
   

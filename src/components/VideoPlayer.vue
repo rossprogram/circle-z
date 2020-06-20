@@ -5,6 +5,13 @@
 <script>
 import videojs from 'video.js';
 
+require('videojs-contrib-quality-levels');
+ 
+// The actual plugin function is exported by this module, but it is also
+// attached to the `Player.prototype`; so, there is no need to assign it
+// to a variable.
+require('videojs-http-source-selector');
+
 export default {
   name: 'VideoPlayer',
   props: {
@@ -17,11 +24,14 @@ export default {
     src: {
       type: String,
     },
+    type: {
+      type: String,
+    },
   },
 
   watch: {
     src() {
-      this.player.src(this.src);
+      this.player.src({ type: this.type, src: this.src });
     },
   },
   
@@ -31,8 +41,24 @@ export default {
     };
   },
   mounted() {
-    this.player = videojs(this.$refs.videoPlayer, this.options, function onPlayerReady() {
+    this.options.controlBar = {
+      children: [
+         'playToggle',
+         'progressControl',
+         'volumePanel',
+         'qualitySelector',
+         'fullscreenToggle',
+      ],
+    };
+    this.player = videojs(this.$refs.videoPlayer, this.options, () => {
       console.log('onPlayerReady', this);
+      console.log(this.src);
+      console.log(this.type);
+	this.player.httpSourceSelector();
+      if (this.src) {
+
+	  this.player.src({ type: this.type, src: this.src });
+      }
     });
   },
   beforeDestroy() {

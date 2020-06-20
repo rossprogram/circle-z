@@ -497,6 +497,18 @@ export default new Vuex.Store({
         commit('incrementUnreadCount', room);
       });
 
+      server.on('emote', (room, from, text) => {
+        commit('pushMessage', {
+          room,
+          message: {
+            from,
+            action: text,
+            timestamp: (new Date()).toString(),
+          },
+        });
+        commit('incrementUnreadCount', room);
+      });
+
       server.on('privmsg', (from, text) => {
         commit('pushPrivateMessage', {
           user: from,
@@ -600,6 +612,13 @@ export default new Vuex.Store({
       service.say(room, message);
     },
 
+    sendEmote({ state, dispatch, commit }, // eslint-disable-line no-unused-vars
+              { room, message }) {
+      
+      service.emote(room, message);
+    },
+
+    
     closePrivateMessages({ commit }, // eslint-disable-line no-unused-vars
                          { user }) {
       commit('removePrivateTranscript', user);
@@ -755,7 +774,11 @@ export default new Vuex.Store({
 
     getVideo({ commit }, { video }) { // eslint-disable-line no-unused-vars
       service.getVideo(video);
-    },    
+    },
+
+    playVideo({ commit }, playingVideo) { // eslint-disable-line no-unused-vars
+      commit('updatePlayingVideo', playingVideo);
+    },
   },
 
   modules: {

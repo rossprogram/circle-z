@@ -523,7 +523,7 @@ export default {
   
   mounted() {
     const browserWindow = getCurrentWindow();
-    browserWindow.setTitle(`${this.$route.params.id} blackboard - Circle Z`);
+    browserWindow.setTitle(`${this.$route.params.id} chalkboard - Circle Z`);
     
     this.who();
     this.fetchBlackboard(this.$route.params.id);

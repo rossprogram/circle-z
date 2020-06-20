@@ -2,8 +2,8 @@
 <Header :name="this.$route.params.id"
 	@leave='leave'
 	@editor='editor'
-	@blackboard='blackboard'
-	:buttons="{ Blackboard: 'chalkboard', Editor: 'pencil-alt', Leave: 'sign-out-alt' }">
+	@chalkboard='chalkboard'
+	:buttons="{ Chalkboard: 'chalkboard', Editor: 'pencil-alt', Leave: 'sign-out-alt' }">
   <splitpanes class="default-theme">
     <pane min-size="50" size="70" max-size="80">
       <div class="chat">
@@ -107,6 +107,7 @@ export default {
   methods: {
     ...mapActions([
       'sendMessage',
+      'sendEmote',
       'viewMessages',
       'announceUserJoin',
       'announceUserPart',
@@ -126,9 +127,9 @@ export default {
       window.open(routeData.href, routeData.href);
     },
 
-    blackboard() {
+    chalkboard() {
       const routeData = this.$router.resolve({
-	name: 'blackboard',
+	name: 'chalkboard',
 	params: { id: this.$route.params.id }, 
       });
       // to ensure I only have one of each window open, use the href
@@ -166,6 +167,30 @@ export default {
 	this.topic({
 	  room: this.$route.params.id,
 	  topic: this.commandline.slice(7), 
+	});
+	this.commandline = '';
+	return;
+      }
+      if (this.commandline.match(/^\/me /)) {
+	this.sendEmote({
+	  room: this.$route.params.id,
+	  message: this.commandline.slice(4),
+	});
+	this.commandline = '';
+	return;
+      }
+      if (this.commandline.match(/^\/emote /)) {
+	this.sendEmote({
+	  room: this.$route.params.id,
+	  message: this.commandline.slice(7),
+	});
+	this.commandline = '';
+	return;
+      }
+      if (this.commandline.match(/^\/action /)) {
+	this.sendEmote({
+	  room: this.$route.params.id,
+	  message: this.commandline.slice(8),
 	});
 	this.commandline = '';
 	return;
