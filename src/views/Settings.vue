@@ -108,7 +108,6 @@ export default {
       'updateServerParameters',
     ]),
 
-
     updatePassword(e) {
       this.updateServerParameters({ password: e.target.value });
     },
