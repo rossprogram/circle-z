@@ -2,27 +2,8 @@
 <Header :name="'@' + this.users[this.$route.params.id].username"
 	@leave='leave'
 	:buttons="{ Leave: 'sign-out-alt' }">
-  <splitpanes class="default-theme">
-    <pane min-size="50" size="70" max-size="80">
-      <div class="chat">
-	<div class="transcript">
-	  <ChatEvent v-for="message in transcript"
-		     v-bind:key="message.id"
-		     :actor="message.from"
-		     :join="message.join"
-		     :part="message.part"
-		     :timestamp="message.timestamp"
-		     :action="message.action"
-		     :message="message.text"/>
-	  <ChatEvent style="opacity: 0.5;" :actor="self.id" :key="commandline" :message="commandline"/>
-	</div>
-	<input type="text" v-model="commandline" class="message"
-	       v-if="user.isConnected"
-	       v-on:keyup.enter="processCommand"
-	       placeholder="Type your message…"/>
-      </div>
-    </pane>
-    <pane size="20">
+  <splitpanes horizontal class="default-theme">
+    <pane size="50">
       <div class="user-detail">
 	<dl>
 
@@ -52,19 +33,38 @@
 	  <dd><span v-if="user.isConnected">online now</span>
 	    <span v-else>disconnected</span>
 	  </dd>
+
+	  <dt>Rooms</dt>
+	  <dd class="roomnames">
+	    <span class="roomname" v-for="room in currentRooms" :key="room.name">
+	      <router-link :to="{ name: 'room', params: { id: room.name }}">{{ room.name }}</router-link>
+	    </span>
+	  </dd>
 	  
 	</dl>
-
-	<hr/>
-
-	<p class="roomnames" v-if="currentRooms.length > 0">Currently in rooms
-	  <span class="roomname" v-for="room in currentRooms" :key="room.name">
-	    <router-link :to="{ name: 'room', params: { id: room.name }}">{{ room.name }}</router-link>
-	    </span>
-	</p>
 	
       </div>
     </pane>
+    <pane min-size="30" size="50" max-size="80">
+      <div class="chat">
+	<div class="transcript">
+	  <ChatEvent v-for="message in transcript"
+		     v-bind:key="message.id"
+		     :actor="message.from"
+		     :join="message.join"
+		     :part="message.part"
+		     :timestamp="message.timestamp"
+		     :action="message.action"
+		     :message="message.text"/>
+	  <ChatEvent style="opacity: 0.5;" :actor="self.id" :key="commandline" :message="commandline"/>
+	</div>
+	<input type="text" v-model="commandline" class="message"
+	       v-if="user.isConnected"
+	       v-on:keyup.enter="processCommand"
+	       placeholder="Type your message…"/>
+      </div>
+    </pane>
+
   </splitpanes>
 </Header>
 </template>
@@ -252,6 +252,6 @@ span.roomname::after {
     content: ', ';
 }
 .roomnames span.roomname:last-child::after {
-    content: ".";
+    content: '';
 }
 </style>
