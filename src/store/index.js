@@ -171,6 +171,7 @@ export default new Vuex.Store({
           Vue.set(state.users, id, { id });
         }
 
+        Vue.set(state.users[id], 'id', id);
         Vue.set(state.users[id], 'email', email);
         Vue.set(state.users[id], 'username', username);
         Vue.set(state.users[id], 'firstName', firstName);

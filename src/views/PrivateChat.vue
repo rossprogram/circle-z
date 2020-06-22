@@ -1,5 +1,5 @@
 <template>
-<Header :name="this.users[this.$route.params.id].username"
+<Header :name="'@' + this.users[this.$route.params.id].username"
 	@leave='leave'
 	:buttons="{ Leave: 'sign-out-alt' }">
   <splitpanes class="default-theme">

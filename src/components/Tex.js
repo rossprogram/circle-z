@@ -135,6 +135,7 @@ function tokenizeTex(s) {
     
     url: /https?:\/\/[^\s]+/,
     room: /#[A-Za-z0-9-]+/,
+    user: /@[A-Za-z0-9-]+/,
   }, 'text');
   
   return tokens;
@@ -169,7 +170,7 @@ function parseMath(tokenizer, output, display) {
   output(html);
 }
 
-function parseText(tokenizer, output, router) {
+function parseText(tokenizer, output, router, store) {
   let done = false;
   
   while (!done) {
@@ -208,6 +209,25 @@ function parseText(tokenizer, output, router) {
       node.href = props.href;
       node.appendChild(document.createTextNode(token.token));
       output(node);
+    } else if (token.type === 'user') {
+      const username = token.token.replace('@', '');
+      const matches = Object.values(store.state.users)
+            .filter((u) => (u.username.toLowerCase() === username.toLowerCase()));
+      
+      if (matches.length > 0) {
+        const { id } = matches[0];
+      
+        const node = document.createElement('a');
+        const props = router.resolve({ 
+          name: 'user',
+          params: { id },
+        });
+        node.href = props.href;
+        node.appendChild(document.createTextNode(`@${matches[0].username}`));
+        output(node);
+      } else {
+        output(document.createTextNode(token.token));
+      }
     } else {
       output(document.createTextNode(token.token));
     }
@@ -243,10 +263,10 @@ export default {
 
     const node = document.createElement('div');
     this.theNode = node;
-    
+
     parseText(tokenizer, (el) => {
       node.appendChild(el);
-    }, this.$router);
+    }, this.$router, this.$store);
 
     this.$el.parentNode.appendChild(node);
     

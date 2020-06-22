@@ -91,6 +91,9 @@ export default {
     },
 
     requestsPerTimeUnit() {
+      if ((60 * this.requestsPerSecond) < 1) {
+	return `${Math.ceil(this.requestsPerSecond * 60 * 60)} requests per hour`;
+      }
       if (this.requestsPerSecond < 1) {
 	return `${Math.ceil(this.requestsPerSecond * 60)} requests per minute`;
       }

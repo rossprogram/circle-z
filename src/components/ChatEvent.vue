@@ -1,16 +1,22 @@
 <template>
-  <div>
+  <div class="event">
+
     <span :class="{ actor: true, action: this.action, part: this.part, join: this.join}">
-      <span class="actor-name">{{ username }}</span></span>
-    <span :class="{ message: true, action: this.action, part: this.part, join: this.join}">
+      <span class="actor-name">
+	<User v-bind:key="actor" :userId="actor"/>
+      </span>
+    </span><span :class="{ message: true, action: this.action, part: this.part, join: this.join}">
       <span v-if="this.timestamp" class="timestamp">{{ new Date(this.timestamp) | moment }}</span>
+    
       <Tex>{{ this.message ? this.message : this.action }}</Tex>
     </span>
+    
   </div>
 </template>
 
 <script>
 import Tex from '@/components/Tex';
+import User from '@/components/User.vue';
 import moment from 'moment';
 import { mapState } from 'vuex';
 
@@ -37,6 +43,7 @@ export default {
   },
   components: {
     Tex,
+    User,
   },
   filters: {
     moment(date) {
@@ -48,18 +55,18 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
+  
 .actor {
     display: inline-block;
     color: #888;
-    font-size: 80%;
-    width: 20%;
     text-align: right;
-    vertical-align: baseline;
+    vertical-align: top;
+    overflow: hidden;
+    width: 1in;
 }
 
 .action {
-    font-weight: bold;
-    font-family: "Computer Modern Serif";
+    font-family: "Computer Modern Sans"  !important;
     color: black;
     font-size: 100%;
 }
@@ -83,14 +90,22 @@ export default {
 }
 
 .actor-name {
-    padding-right: 6pt;
+    //padding-right: 6pt;
+}
+
+.actor-name::after {
+  content: "\00a0";
 }
 
 .message {
     font-family: "Computer Modern Serif";
-    width: 80%;
     display: inline-block;
     vertical-align: text-top;
+    width: calc(100% - 1in);
+}
+
+.message div {
+    display: inline-block;
     }
 
 </style>

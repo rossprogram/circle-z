@@ -35,7 +35,6 @@ const routes = [
     name: 'user',
     component: PrivateChat,
   },  
-
   {
     path: '/forum/:id?',
     name: 'forum',

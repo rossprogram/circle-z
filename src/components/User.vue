@@ -1,6 +1,8 @@
 <template>
 <span @click="openPrivateMessages">
-  <span>@{{ user.username }}</span>
+  <span :class="{ user: true, staff: user.isStaff }"
+	>@</span><span>{{ user.username }}<sup v-if="user.isStaff"><font-awesome-icon icon="star"/></sup>
+  </span>
 </span>
 </template>
 
@@ -25,8 +27,8 @@ export default {
     openPrivateMessages() {
       this.$router.push(
 	{
-	  name: 'chat',
-	  params: { id: this.nick }, 
+	  name: 'user',
+	  params: { id: this.userId }, 
 	},
       );
     },
@@ -37,5 +39,11 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
 
+sup {
+    font-size: 40%;
+    opacity: 0.25;
+}
 
+.staff {
+}
 </style>
