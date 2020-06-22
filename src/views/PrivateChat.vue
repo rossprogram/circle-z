@@ -24,10 +24,45 @@
     </pane>
     <pane size="20">
       <div class="user-detail">
-	<span class="username">{{ user.username }}</span>
-	<span class="email" @click="email">{{ user.email }}</span>
+	<dl>
 
-	<span v-if="user.isConnected">online now</span>
+	  <dt>Username</dt>
+	  <dd><User v-bind:key="user.id" :userId="user.id"/></dd>
+	  
+	  <dt>Name</dt>
+	  <dd>{{ user.firstName }}
+	    <span v-if="user.nickname">&ldquo;{{ user.nickname }}&rdquo;</span>
+	    {{ user.lastName }}
+	  </dd>
+	  
+	  <dt>Email</dt>
+	  <dd><span class="email" @click="email">{{ user.email }}</span></dd>
+
+	  <dt>Role</dt>
+	  <dd><span v-if="user.isSuperuser">superuser</span>
+	    <span v-if="user.isJuniorCounselor">junior counselor</span>
+	    <span v-if="user.isCounselor">counselor</span>
+	    <span v-if="user.isStaff">staff</span>
+	    <span
+	      v-if="!user.isSuperuser && !user.isJuniorCounselor && !user.isCounselor && !user.isStaff">
+	      participant</span>
+	  </dd>
+
+	  <dt>Status</dt>
+	  <dd><span v-if="user.isConnected">online now</span>
+	    <span v-else>disconnected</span>
+	  </dd>
+	  
+	</dl>
+
+	<hr/>
+
+	<p class="roomnames" v-if="currentRooms.length > 0">Currently in rooms
+	  <span class="roomname" v-for="room in currentRooms" :key="room.name">
+	    <router-link :to="{ name: 'room', params: { id: room.name }}">{{ room.name }}</router-link>
+	    </span>
+	</p>
+	
       </div>
     </pane>
   </splitpanes>
@@ -37,14 +72,21 @@
 <script>
 import { mapActions, mapState } from 'vuex';
 import ChatEvent from '@/components/ChatEvent.vue';
+import User from '@/components/User.vue';
 import Header from '@/components/Header.vue';
 
 const { remote } = require('electron');
 
 export default {
   computed: {
-    ...mapState(['privateTranscripts', 'users', 'self']),
+    ...mapState(['privateTranscripts', 'users', 'self', 'rooms']),
 
+    currentRooms: {
+      get() {
+	return Object.values(this.rooms).filter((room) => room.users.indexOf(this.$route.params.id) >= 0);
+      },
+    },
+    
     user: {
       get() {
 	if (this.users[this.$route.params.id]) {
@@ -125,6 +167,7 @@ export default {
   
   components: {
     ChatEvent,
+    User,
     Header,
   },
   name: 'PrivateChat',
@@ -170,6 +213,10 @@ export default {
   margin: 0;
   font-family: monospace;
   }
+
+  .email {
+      font-family: monospace;
+  }
   
   h2 {
   height: 12pt;
@@ -181,5 +228,30 @@ export default {
     padding-left: 6pt;
   border-bottom: 1px solid #eee;
   user-select: none;    
+  }
+
+  dl {
+  display: grid;
+  grid-template-columns: max-content auto;
+}
+
+dt {
+    grid-column-start: 1;
+    font-weight: bold;
+}
+
+dd {
+  grid-column-start: 2;
+}
+
+span.roomname {
+    display: inline;
+}
+
+span.roomname::after {
+    content: ', ';
+}
+.roomnames span.roomname:last-child::after {
+    content: ".";
 }
 </style>

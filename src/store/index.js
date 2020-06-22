@@ -194,6 +194,7 @@ export default new Vuex.Store({
           Vue.set(state.rooms, name, { name });
         }
 
+        Vue.set(state.rooms[name], 'name', name);
         Vue.set(state.rooms[name], 'users', users);
         Vue.set(state.rooms[name], 'topic', topic);
       });

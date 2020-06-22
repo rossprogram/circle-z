@@ -6,7 +6,7 @@
   <div class="cards">
     <div class="card-item" v-for="id in filteredUserIds" v-bind:key="id">
       <div class="card" @click="gotoUser(id)">
-	<span class="user">
+	<span :class="{ user: true, online: users[id].isConnected }">
 	  <User :userId="id"/>
 	  <span class="realname">{{ users[id].firstName }} {{ users[id].lastName }}</span>	  
 	</span>
@@ -135,6 +135,14 @@ font-weight: bold;
 .realname {
       font-style: italic;
       float: right;
+}
+
+.user {
+    opacity: 0.5;
+}
+
+.user.online {
+    opacity: 1;
 }
 
 </style>
