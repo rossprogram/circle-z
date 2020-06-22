@@ -76,6 +76,7 @@ export default {
     ...mapActions([
       'fetchRootPosts',
       'fetchPosts',
+      'readPost',
     ]),
 
     gotoParent() {
@@ -92,6 +93,7 @@ export default {
   beforeRouteUpdate(to, from, next) {
     if (to.params.id !== undefined) {
       this.fetchPosts({ parent: to.params.id });
+      this.readPost(to.params.id);
     } else {
       this.fetchRootPosts();
     }
@@ -101,6 +103,7 @@ export default {
   mounted() {
     if (this.$route.params.id !== undefined) {
       this.fetchPosts({ parent: this.$route.params.id });
+      this.readPost(this.$route.params.id);
     } else {
       this.fetchRootPosts();
     }

@@ -1,6 +1,7 @@
 <template>
 <div>
-  <div @contextmenu="showMenu" v-if="post" class="post">
+  <div @contextmenu="showMenu" v-if="post"
+       :class="{ post: true, hidden: post.hidden, unread: !isRead, read: isRead }">
     <div @click="gotoPost" class="subject"><Tex>{{ post.subject }}</Tex></div>
     <div @click="gotoPost" class="body"><Tex>{{ post.body }}</Tex></div>
     <div class="byline">
@@ -53,22 +54,33 @@ import User from '@/components/User.vue';
 import moment from 'moment';
 import { mapActions, mapState } from 'vuex';
 
-const { getCurrentWindow, Menu, MenuItem } = require('electron').remote;
+const {
+ getCurrentWindow, Menu, MenuItem, dialog, 
+} = require('electron').remote;
 
 export default {
   name: 'Post',
   computed: {
     ...mapState(['posts',
 		 'rootPosts',
+		 'readPosts',
+		 'self',
 		 'users']),
 
+    isRead() {
+      return (this.readPosts.indexOf(this.postId) >= 0);
+    },
+    
     post() {
       return this.posts[this.postId];
     },
 
     children() {
-      if (this.post) return this.post.children;
-      return this.rootPosts;
+      const f = (p) => (this.self.isStaff) || (!this.posts[p].hidden)
+	    || (this.posts[p].hidden && this.posts[p].author === this.self.id);
+      
+      if (this.post) return this.post.children.filter(f);
+      return this.rootPosts.filter(f);
     },
 
     sortedChildren() {
@@ -120,18 +132,53 @@ export default {
       'downvotePost',
       'fetchPosts',
       'writePost',
+      'removePost',
+      'readPost',
+      'unreadPost',
     ]),
 
     showMenu(e) {
       const menu = new Menu();
-      const menuItem = new MenuItem({
+
+      const menuItemReplies = new MenuItem({
 	label: this.showChildren ? 'Hide replies' : 'Show replies', 
 	click: () => {
 	  this.showChildren = !this.showChildren;
 	},
       });
-      menu.append(menuItem);
+      menu.append(menuItemReplies);
 
+      const menuItemRead = new MenuItem({
+	label: this.isRead ? 'Mark as unread' : 'Mark as read', 
+	click: () => {
+	  if (this.isRead) {
+	    this.unreadPost(this.postId);
+	  } else {
+	    this.readPost(this.postId);
+	  }
+	},
+      });
+      menu.append(menuItemRead);
+
+      if ((this.post.author === this.self.id) && (!this.post.hidden)) {
+	const menuItemDelete = new MenuItem({
+	  label: 'Delete post',
+	  click: async () => {
+	    const result = await dialog.showMessageBox({
+	      type: 'question',
+	      message: 'Are you sure you want to delete this post?',
+	      buttons: ['Yes', 'No'],
+	      defaultId: 1,
+	    });
+
+	    if (result.response === 0) {
+	      this.removePost(this.postId);
+	    }
+	  },
+	});
+	menu.append(menuItemDelete);
+      }
+      
       e.preventDefault();
       menu.popup(getCurrentWindow());
     },
@@ -210,6 +257,14 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
 
+.hidden {
+    text-decoration: line-through;
+}
+
+.unread {
+    background-color: #FFFF8F;
+}
+
 .children {
     border-left: solid 1px #eee;
     padding-left: 0.5em;
@@ -219,6 +274,10 @@ export default {
 
 .post:hover {
     background: #eee;
+}
+
+.post.unread:hover {
+    background:  #DDDD33;
 }
 
 .post {

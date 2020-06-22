@@ -48,9 +48,12 @@ const vuexPersist = new VuexPersistence({
     email: state.email,
     password: state.password,
     everConnected: state.everConnected,
+    readPosts: state.readPosts,
   }),
   filter: (mutation) => ((mutation.type === 'setServerParameters')
-                         || (mutation.type === 'connected')),
+                        || (mutation.type === 'markPostRead')
+                        || (mutation.type === 'markPostUnread')                        
+                        || (mutation.type === 'connected')),
 });
 
 export default new Vuex.Store({
@@ -77,6 +80,7 @@ export default new Vuex.Store({
     blackboards: {},
     pointers: {},
 
+    readPosts: [],
     posts: {},
     rootPosts: [],
     
@@ -324,10 +328,23 @@ export default new Vuex.Store({
       Vue.set(state.pointers[id], user, position);
     },
 
+    markPostRead(state, postId) {
+      if (state.readPosts.indexOf(postId) < 0) {
+        state.readPosts.push(postId);
+      }
+    },
+
+    markPostUnread(state, postId) {
+      if (state.readPosts.indexOf(postId) >= 0) {
+        state.readPosts.splice(state.readPosts.indexOf(postId), 1);
+      }
+    },
+    
     addPosts(state, { posts }) {
       posts.forEach((post) => {
         if (state.posts[post.id] === undefined) Vue.set(state.posts, post.id, {});
-        
+
+        Vue.set(state.posts[post.id], 'id', post.id);        
         Vue.set(state.posts[post.id], 'body', post.body);
         Vue.set(state.posts[post.id], 'subject', post.subject);
         Vue.set(state.posts[post.id], 'createdAt', post.createdAt);
@@ -727,7 +744,7 @@ export default new Vuex.Store({
     },
     
     removePost({ commit }, // eslint-disable-line no-unused-vars
-               { post }) {
+               post) {
       service.removePost(post);
     },
 
@@ -745,6 +762,14 @@ export default new Vuex.Store({
     fetchRootPosts({ commit }) { // eslint-disable-line no-unused-vars
       service.getRootPosts();
     },
+
+    readPost({ commit }, postId) {
+      commit('markPostRead', postId);
+    },
+
+    unreadPost({ commit }, postId) {
+      commit('markPostUnread', postId);
+    },    
 
     announceUserJoin({ commit }, { room, user }) {
       commit('pushMessage', {
