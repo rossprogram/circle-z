@@ -8,7 +8,8 @@
       </pane>
       <pane class="viewer-pane">
 	  <div id="toolbar">
-	    <button id="compile" @click="compile"><font-awesome-icon icon="hammer" /> Compile</button>
+	    <button :class='{ dirty: needsRecompile }'
+		    id="compile" @click="compile"><font-awesome-icon icon="hammer" /> Compile</button>
 	    <span id="zoom">
 	      <label for="zoom">Zoom</label>
 	      <input name="zoom" type="number" max="300" min="20" step="10" v-model="scalePercent"/>
@@ -60,6 +61,12 @@ export default {
   computed: {
     ...mapState(['documents', 'cursors', 'selections', 'users', 'self', 'connected']),
 
+    needsRecompile: {
+      get() {
+	return stringHash(this.document) !== this.compiledVersion;
+      },
+    },
+    
     document: {
       get() {
 	const result = this.documents[this.$route.params.id];
@@ -89,6 +96,7 @@ export default {
       cursorManager: undefined,
       resizeObserver: undefined,
       editorElement: undefined,
+      compiledVersion: undefined,
     };
   },
   
@@ -105,10 +113,9 @@ export default {
     },
     
     compile() {
-      console.log('COMPILOING', this.documents);
-      
       this.terminalOutput = '';
 
+      this.compiledVersion = stringHash(this.document);
       ipcRenderer.send('tex', this.document);
     },
 
@@ -411,5 +418,18 @@ font-family: "Computer Modern Serif";
     vertical-align: top;
 }
 
+@keyframes shadow-pulse
+{
+     0% {
+          box-shadow: 0 0 0 0px rgba(0, 0, 0, 0.2);
+     }
+     100% {
+          box-shadow: 0 0 0 2pt rgba(0, 0, 0, 0);
+     }
+}
 
+.dirty
+{
+     animation: shadow-pulse 1s infinite;
+}
 </style>
