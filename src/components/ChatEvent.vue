@@ -5,7 +5,8 @@
       <span class="actor-name">
 	<User v-bind:key="actor" :userId="actor"/>
       </span>
-    </span><span :class="{ message: true, action: this.action, part: this.part, join: this.join}">
+    </span><span v-if="image"><img :src="image"/></span>
+    <span v-else :class="{ message: true, action: this.action, part: this.part, join: this.join}">
       <span v-if="this.timestamp" class="timestamp">{{ new Date(this.timestamp) | moment }}</span>
     
       <Tex>{{ this.message ? this.message : this.action }}</Tex>
@@ -36,6 +37,7 @@ export default {
   props: {
     actor: String,
     message: String,
+    image: String,
     action: String,    
     timestamp: String,
     part: Boolean,
@@ -80,6 +82,7 @@ export default {
 
 
 .timestamp {
+    color: black;
     float: right;
     font-size: 70%;
     font-family: "Computer Modern Sans";
@@ -106,6 +109,10 @@ export default {
 
 .message div {
     display: inline-block;
-    }
+}
+
+img {
+    max-width: 100%;
+}
 
 </style>

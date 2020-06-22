@@ -516,6 +516,18 @@ export default new Vuex.Store({
         commit('incrementUnreadCount', room);
       });
 
+      server.on('shareImage', (room, from, image) => {
+        commit('pushMessage', {
+          room,
+          message: {
+            from,
+            image,
+            timestamp: (new Date()).toString(),
+          },
+        });
+        commit('incrementUnreadCount', room);
+      });      
+      
       server.on('emote', (room, from, text) => {
         commit('pushMessage', {
           room,
@@ -629,6 +641,12 @@ export default new Vuex.Store({
                 { room, message }) {
       
       service.say(room, message);
+    },
+
+    sendImage({ state, dispatch, commit }, // eslint-disable-line no-unused-vars
+                { room, image }) {
+      
+      service.shareImage(room, image);
     },
 
     sendEmote({ state, dispatch, commit }, // eslint-disable-line no-unused-vars

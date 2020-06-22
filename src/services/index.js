@@ -78,6 +78,14 @@ export function say(room, text) {
   });
 }
 
+export function shareImage(room, image) {
+  theSocket.sendMessage({
+    type: 'shareImage',
+    room,
+    image,
+  });
+}
+
 export function emote(room, text) {
   theSocket.sendMessage({
     type: 'emote',
@@ -272,6 +280,10 @@ function onSay(socket, emitter, data) {
   emitter.emit('say', data.room, data.from, data.text);
 }
 
+function onShareImage(socket, emitter, data) {
+  emitter.emit('shareImage', data.room, data.from, data.image);
+}
+
 function onEmote(socket, emitter, data) {
   emitter.emit('emote', data.room, data.from, data.text);
 }
@@ -341,6 +353,7 @@ const callbacks = {
   users,
   rooms,
   say: onSay,
+  shareImage: onShareImage,
   emote: onEmote,
   privmsg: onPrivmsg,
   topic,

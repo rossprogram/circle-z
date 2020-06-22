@@ -6,13 +6,14 @@
 	:buttons="{ Chalkboard: 'chalkboard', Editor: 'pencil-alt', Leave: 'sign-out-alt' }">
   <splitpanes class="default-theme">
     <pane min-size="50" size="70" max-size="80">
-      <div class="chat">
+      <div @contextmenu="showMenu" class="chat">
 	<div class="transcript">
 	  <ChatEvent v-for="message in transcript"
 		     v-bind:key="message.id"
 		     :actor="message.from"
 		     :join="message.join"
 		     :part="message.part"
+		     :image="message.image"
 		     :timestamp="message.timestamp"
 		     :action="message.action"
 		     :message="message.text"/>
@@ -39,6 +40,21 @@ import { mapActions, mapState } from 'vuex';
 import ChatEvent from '@/components/ChatEvent.vue';
 import User from '@/components/User.vue';
 import Header from '@/components/Header.vue';
+import imageType from 'image-type';
+import fs from 'fs';
+import datauri from 'datauri';
+
+const {
+  getCurrentWindow, Menu, MenuItem, dialog,
+} = require('electron').remote;
+
+function showErrorBox(e) {
+  dialog.showMessageBox({
+    type: 'error',
+    message: e,
+    buttons: ['OK'],
+  });
+}
 
 export default {
   computed: {
@@ -107,6 +123,7 @@ export default {
   methods: {
     ...mapActions([
       'sendMessage',
+      'sendImage',      
       'sendEmote',
       'viewMessages',
       'announceUserJoin',
@@ -116,6 +133,53 @@ export default {
       'focus',
       'topic',
     ]),
+
+    showMenu(e) {
+      const menu = new Menu();
+
+      const menuItem = new MenuItem({
+	label: 'Send image',
+	click: () => {
+	  dialog.showOpenDialog({
+	    properties: ['openFile'],
+	  })
+	    .then((result) => {
+	      if (result.canceled === false) {
+		const filePath = result.filePaths[0];
+	      
+		fs.readFile(filePath, (err, data) => {
+		  if (err) {
+		    showErrorBox(err.toString());
+		  } else if (data.length > 128 * 1024) {
+		    showErrorBox('Your image file must be under 128kb; large images result in a less than optimal multi-user experience.');
+		  } else if (imageType(data)) {
+		    datauri(filePath, (error, content, meta) => {
+		      if (err) {
+			showErrorBox(error.toString());
+		      } else {
+			console.log('Sending image with', meta);
+			this.sendImage({
+			  room: this.$route.params.id,
+			  image: content, 
+			});
+		      }
+		    }); 
+		  } else {
+		    showErrorBox('The file does not seem to be an image.');
+		  }
+		});
+	      }		    
+	    })
+	    .catch((err) => {
+	      showErrorBox(err.toString());
+	    });
+	  },
+      });
+      menu.append(menuItem);
+
+      e.preventDefault();
+      menu.popup(getCurrentWindow());
+    },
 
     editor() {
       const routeData = this.$router.resolve({

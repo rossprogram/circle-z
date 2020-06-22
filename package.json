@@ -1,6 +1,6 @@
 {
   "name": "circle-z",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "description": "A chat client for online math courses",
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -26,9 +26,11 @@
     "@ximeraproject/kpathsea": "^1.0.2",
     "ace-builds": "^1.4.11",
     "core-js": "^3.6.4",
+    "datauri": "^3.0.0",
     "diff-match-patch": "^1.0.5",
     "dvi2html": "^0.0.6",
     "hls.js": "^0.13.2",
+    "image-type": "^4.1.0",
     "json-socket-international": "^0.5.0",
     "lru-cache": "^5.1.1",
     "mathjax-full": "^3.0.5",
