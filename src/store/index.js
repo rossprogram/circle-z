@@ -20,6 +20,20 @@ if (electron) {
   else persistPath = electron.app.getPath('userData');
 }
 
+let showAnnouncement = function () {};
+
+if (electron) {
+  if (electron.dialog) {
+    showAnnouncement = function (e) {
+      electron.dialog.showMessageBox({
+        type: 'info',
+        message: e,
+        buttons: ['OK'],
+      });    
+    };
+  }
+}
+
 const vuexPersist = new VuexPersistence({
   storage: {},
   saveState: (_, state) => {
@@ -635,6 +649,12 @@ export default new Vuex.Store({
           service.getDocument(id);
         }
       });
+
+      server.on('announce', (from, message) => {
+        let fromName = from;
+        if (state.users[from]) fromName = `@${state.users[from].username}`;
+        showAnnouncement(`${fromName}: ${message}`);
+      });
     },
 
     sendMessage({ state, dispatch, commit }, // eslint-disable-line no-unused-vars
@@ -824,6 +844,11 @@ export default new Vuex.Store({
     playVideo({ commit }, playingVideo) { // eslint-disable-line no-unused-vars
       commit('updatePlayingVideo', playingVideo);
     },
+
+    makeAnnouncement({ commit }, message) { // eslint-disable-line no-unused-vars
+      service.announce(message);
+    },
+
   },
 
   modules: {

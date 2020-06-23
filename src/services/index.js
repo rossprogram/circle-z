@@ -102,6 +102,13 @@ export function privmsg(user, text) {
   });
 }
 
+export function announce(message) {
+  theSocket.sendMessage({
+    type: 'announce',
+    message,
+  });
+}
+
 export function getDocument(id) {
   theSocket.sendMessage({
     type: 'getServerDocument',
@@ -276,6 +283,10 @@ function rooms(socket, emitter, data) {
   emitter.emit('rooms', data.rooms);
 }
 
+function onAnnounce(socket, emitter, data) {
+  emitter.emit('announce', data.from, data.message);
+}
+
 function onSay(socket, emitter, data) {
   emitter.emit('say', data.room, data.from, data.text);
 }
@@ -352,6 +363,7 @@ const callbacks = {
   joined,
   users,
   rooms,
+  announce: onAnnounce,
   say: onSay,
   shareImage: onShareImage,
   emote: onEmote,

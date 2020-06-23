@@ -160,7 +160,7 @@ export default {
       });
       menu.append(menuItemRead);
 
-      if ((this.post.author === this.self.id) && (!this.post.hidden)) {
+      if (((this.post.author === this.self.id) || (this.self.isStaff)) && (!this.post.hidden)) {
 	const menuItemDelete = new MenuItem({
 	  label: 'Delete post',
 	  click: async () => {

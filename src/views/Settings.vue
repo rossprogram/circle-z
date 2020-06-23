@@ -61,6 +61,23 @@
       and using {{ Math.ceil(serverMemoryUsed / 1024 / 1024) }} megabytes of memory.</p>
 
     </div>
+
+    <div v-if="self && self.isStaff">
+      <hr/>
+
+      <p>As staff, you are permitted to make system-wide announcements.</p>
+      
+      <div class="panel">
+	<div class="row">
+	  <label for="announcement">message:</label>
+	  <input id="announcement" v-model="announcement">	
+	</div>
+
+	<button @click="announce"
+		>Announce</button>
+	</div>
+
+    </div>
   </Header>
 </template>
 
@@ -76,6 +93,13 @@ export default {
   components: {
     Header,
   },
+
+  data() {
+    return {
+      announcement: '',
+    };
+  },
+
   
   computed: {
     ...mapState(['server', 'port', 'email', 'password',
@@ -84,6 +108,7 @@ export default {
 		 'requestsPerSecond',
 		 'serverMemoryUsed',
 		 'serverTime', 'pingTime',
+		 'self',
 		]),
 
     pingTimeRelative() {
@@ -103,10 +128,16 @@ export default {
     
   methods: {
     ...mapActions([
+      'makeAnnouncement',
       'quit',
       'connect',
       'updateServerParameters',
     ]),
+
+    announce() {
+      this.makeAnnouncement(this.announcement);
+      this.announcement = '';
+    },
 
     updatePassword(e) {
       this.updateServerParameters({ password: e.target.value });
