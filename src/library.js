@@ -20,6 +20,7 @@ let files = [];
 let urlRoot = '';
 let currentDirectory = '';
 let texput;
+let texmf = {};
 
 export function deleteEverything() {
   files = [];
@@ -27,6 +28,10 @@ export function deleteEverything() {
 
 export function setTexput(buffer) {
   texput = Buffer.from(buffer);
+}
+
+export function setTexmfExtra(t) {
+  texmf = t;
 }
 
 export function writeFileSync(filename, buffer) {
@@ -69,7 +74,7 @@ function openSync(filename, mode) {
     });
     return files.length - 1;
   }
-
+  
   if (filename === 'texput.tex') {
     files.push({
       filename,
@@ -79,6 +84,17 @@ function openSync(filename, mode) {
       descriptor: files.length,
     });
     return files.length - 1;
+  }
+
+  if (texmf[filename]) {
+    files.push({
+      filename,
+      position: 0,
+      erstat: 0,
+      buffer: new Uint8Array(texmf[filename]),
+      descriptor: files.length,
+    });
+    return files.length - 1;    
   }
   
   if (!sleeping) {

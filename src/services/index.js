@@ -255,10 +255,15 @@ export function getVideos() {
 }
 
 export function getVideo(video) {
-  console.log('video=', video);
   theSocket.sendMessage({
     type: 'getVideo',
     video,
+  });
+}
+
+export function getTexFiles() {
+  theSocket.sendMessage({
+    type: 'getTexFiles',
   });
 }
 
@@ -357,6 +362,10 @@ function playVideo(socket, emitter, data) {
   emitter.emit('playVideo', data.url);
 }
 
+function addTexFile(socket, emitter, data) {
+  emitter.emit('addTexFile', data.filename, data.url);
+}
+
 const callbacks = {
   error,
   login,
@@ -385,6 +394,8 @@ const callbacks = {
   ping,
   setVideos,
   playVideo,
+
+  addTexFile,
 };
 
 function handleMessage(socket, emitter, data) {

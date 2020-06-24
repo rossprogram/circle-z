@@ -59,7 +59,9 @@ function stringToColor(str) {
 
 export default {
   computed: {
-    ...mapState(['documents', 'cursors', 'selections', 'users', 'self', 'connected']),
+    ...mapState(['documents', 'cursors', 'selections',
+		 'texFiles',
+		 'users', 'self', 'connected']),
 
     needsRecompile: {
       get() {
@@ -102,7 +104,8 @@ export default {
   
   methods: {
     ...mapActions(['updateDocument', 'fetchDocument', 'who',
-		   'updateDocumentCursor', 'updateDocumentSelection', 
+		   'updateDocumentCursor', 'updateDocumentSelection',
+		   'getTexFiles',
 		  ]),
 
     maybeCompile(e) {
@@ -116,7 +119,7 @@ export default {
       this.terminalOutput = '';
 
       this.compiledVersion = stringHash(this.document);
-      ipcRenderer.send('tex', this.document);
+      ipcRenderer.send('tex', this.document, this.texFiles);
     },
 
     destroy() {
@@ -222,10 +225,11 @@ export default {
   },
   
   mounted() {
-    console.log('MOUNTED');
+
     console.log('contentBackup', this.contentBackup === undefined);
 
     this.who();
+    this.getTexFiles();
     this.fetchDocument(this.$route.params.id);
     
     ipcRenderer.on('dvi', (event, arg) => {

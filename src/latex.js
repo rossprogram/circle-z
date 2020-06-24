@@ -99,11 +99,12 @@ function runTex() {
 }
 
 
-ipcMain.on('tex', async (event, document) => {
+ipcMain.on('tex', async (event, document, texmf) => {
   console.log('Launching TeX...');
   
   library.deleteEverything();
   library.setTexput(document);
+  library.setTexmfExtra(texmf);
 
   library.setConsoleWriter((x) => {
     event.reply('latex-console', x);

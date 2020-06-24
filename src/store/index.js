@@ -7,6 +7,7 @@ import electron from 'electron';
 import VuexPersistence from 'vuex-persist';
 import path from 'path';
 import fs from 'fs';
+import fetch from 'node-fetch';
 import * as service from '../services';
 
 const diffMatchPatch = new DiffMatchPatch();
@@ -119,6 +120,8 @@ export default new Vuex.Store({
 
     videos: [],
     playingVideo: '',
+
+    texFiles: {},
   },
 
   getters: {
@@ -135,6 +138,10 @@ export default new Vuex.Store({
   },
   
   mutations: {
+    addTexFile(state, { filename, body }) {
+      Vue.set(state.texFiles, filename, body);
+    },
+    
     showSnack(state, snack) {
       state.snackbar.snack = snack;
       state.snackbar.visible = true;
@@ -655,6 +662,13 @@ export default new Vuex.Store({
         if (state.users[from]) fromName = `@${state.users[from].username}`;
         showAnnouncement(`${fromName}: ${message}`);
       });
+
+      server.on('addTexFile', async (filename, url) => {
+	const response = await fetch(url);
+	const body = await response.text();
+
+        commit('addTexFile', { filename, body });
+      });
     },
 
     sendMessage({ state, dispatch, commit }, // eslint-disable-line no-unused-vars
@@ -848,6 +862,10 @@ export default new Vuex.Store({
     makeAnnouncement({ commit }, message) { // eslint-disable-line no-unused-vars
       service.announce(message);
     },
+
+    getTexFiles({ commit }) { // eslint-disable-line no-unused-vars
+      service.getTexFiles();
+    },    
 
   },
 

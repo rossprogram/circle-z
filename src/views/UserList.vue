@@ -2,6 +2,10 @@
 <Header @refresh='refresh' :buttons="{ Refresh: 'sync' }" name="People">
   <div class="search-panel">
     <input v-model="search" type="search" placeholder="Search">
+    <span id="onlyOnlineCheckbox">
+      <input type="checkbox" id="onlyOnline" name="onlyOnline" v-model="onlyOnline"/>
+      <label for="onlyOnline">only online</label>
+    </span>
   </div>
   <div class="cards">
     <div class="card-item" v-for="id in filteredUserIds" v-bind:key="id">
@@ -32,6 +36,7 @@ export default {
   data() {
     return {
       search: '',
+      onlyOnline: true,
     };
   },
   
@@ -41,7 +46,8 @@ export default {
     filteredUserIds: {
       get() {
 	return this.userIds.filter(
-	  (id) => JSON.stringify(this.users[id]).toLowerCase().match(this.search.toLowerCase()),
+	  (id) => JSON.stringify(this.users[id]).toLowerCase().match(this.search.toLowerCase())
+	    && ((!this.onlyOnline) || (this.users[id].isConnected)),
 	).sort((a, b) => {
 	  const ua = this.users[a].username;
 	  const ub = this.users[b].username;
@@ -144,5 +150,10 @@ font-weight: bold;
 .user.online {
     opacity: 1;
 }
+
+#onlyOnlineCheckbox {
+
+}
+
 
 </style>
