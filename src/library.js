@@ -57,7 +57,7 @@ export function readFileSync(filename) {
 
 let sleeping = false;
 function openSync(filename, mode) {
-  console.log('attempting to open', filename);
+  console.log('attempting to open', filename, 'in mode', mode);
 
   // FIXME: this seems like a bug with TeXlive?
   if (filename.startsWith('"')) {
@@ -87,11 +87,13 @@ function openSync(filename, mode) {
   }
 
   if (texmf[filename]) {
+    const enc = new TextEncoder(); // always utf-8
+
     files.push({
       filename,
       position: 0,
       erstat: 0,
-      buffer: new Uint8Array(texmf[filename]),
+      buffer: enc.encode(texmf[filename]),
       descriptor: files.length,
     });
     return files.length - 1;    
