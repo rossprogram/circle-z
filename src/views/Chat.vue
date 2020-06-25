@@ -75,7 +75,8 @@ export default {
 
     usersInRoom: {
       get() {
-	return this.room.users;
+	if (this.room) return this.room.users;
+	return [];
       },
     },
   },
