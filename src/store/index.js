@@ -64,8 +64,11 @@ const vuexPersist = new VuexPersistence({
     password: state.password,
     everConnected: state.everConnected,
     readPosts: state.readPosts,
+    family: state.family,
   }),
   filter: (mutation) => ((mutation.type === 'setServerParameters')
+                        || (mutation.type === 'addToFamily')
+                        || (mutation.type === 'removeFromFamily')                                                
                         || (mutation.type === 'markPostRead')
                         || (mutation.type === 'markPostUnread')                        
                         || (mutation.type === 'connected')),
@@ -83,6 +86,7 @@ export default new Vuex.Store({
         
     userIds: [],
     users: {},
+    family: [],
     
     roomnames: [],
     rooms: {},
@@ -138,6 +142,18 @@ export default new Vuex.Store({
   },
   
   mutations: {
+    addToFamily(state, id) {
+      if (state.family.indexOf(id) < 0) {
+        state.family.push(id);
+      }
+    },
+
+    removeFromFamily(state, id) {
+      if (state.family.indexOf(id) >= 0) {
+        state.family.splice(state.family.indexOf(id), 1);
+      }
+    },
+
     addTexFile(state, { filename, body }) {
       Vue.set(state.texFiles, filename, body);
     },
@@ -867,6 +883,10 @@ export default new Vuex.Store({
       service.getTexFiles();
     },    
 
+    setFamilyMembership({ commit }, { id, membership }) {
+      if (membership) commit('addToFamily', id);
+      else commit('removeFromFamily', id);
+    },
   },
 
   modules: {

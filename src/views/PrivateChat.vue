@@ -15,6 +15,10 @@
 	    <span v-if="user.nickname">&ldquo;{{ user.nickname }}&rdquo;</span>
 	    {{ user.lastName }}
 	  </dd>
+
+	  <dt>My family</dt>
+	  <dd><input type="checkbox" id="family" v-model="familyMembership">
+	    <label for="family">A member of my family</label></dd>
 	  
 	  <dt>Email</dt>
 	  <dd><span class="email" @click="email">{{ user.email }}</span></dd>
@@ -79,11 +83,20 @@ const { remote } = require('electron');
 
 export default {
   computed: {
-    ...mapState(['privateTranscripts', 'users', 'self', 'rooms']),
+    ...mapState(['privateTranscripts', 'users', 'self', 'rooms', 'family']),
 
     currentRooms: {
       get() {
 	return Object.values(this.rooms).filter((room) => room.users.indexOf(this.$route.params.id) >= 0);
+      },
+    },
+
+    familyMembership: {
+      get() {
+	return this.family.indexOf(this.$route.params.id) >= 0;
+      },
+      set(membership) {
+	this.setFamilyMembership({ id: this.$route.params.id, membership });
       },
     },
     
@@ -126,6 +139,7 @@ export default {
       'sendPrivateMessage',
       'viewPrivateMessages',
       'closePrivateMessages',
+      'setFamilyMembership',
     ]),
 
     email() {

@@ -62,7 +62,7 @@
 
     </div>
 
-    <div v-if="self && self.isStaff">
+    <div v-if="self && self.isStaff && connected">
       <hr/>
 
       <p>As staff, you are permitted to make system-wide announcements.</p>
