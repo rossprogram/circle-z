@@ -267,6 +267,19 @@ export function getTexFiles() {
   });
 }
 
+export function getFiles() {
+  theSocket.sendMessage({
+    type: 'getFiles',
+  });
+}
+
+export function requestFile(filename) {
+  theSocket.sendMessage({
+    type: 'requestFile',
+    filename,
+  });
+}
+
 function error(socket, emitter, data) {
   emitter.emit('error', data.error);
 }
@@ -366,6 +379,14 @@ function addTexFile(socket, emitter, data) {
   emitter.emit('addTexFile', data.filename, data.url);
 }
 
+function openFile(socket, emitter, data) {
+  emitter.emit('openFile', data.filename, data.url);
+}
+
+function setFileList(socket, emitter, data) {
+  emitter.emit('setFileList', data.filenames);
+}
+
 const callbacks = {
   error,
   login,
@@ -396,6 +417,9 @@ const callbacks = {
   playVideo,
 
   addTexFile,
+
+  openFile,
+  setFileList,
 };
 
 function handleMessage(socket, emitter, data) {

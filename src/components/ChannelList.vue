@@ -44,6 +44,12 @@
 
     <h3></h3>     
     <ul>
+      <router-link v-if="connected" tag='li' class="files" :to="{ name: 'files' }">
+	<span><font-awesome-icon icon="file-pdf" />
+	  FILES
+	</span>
+      </router-link>
+
       <router-link v-if="connected" tag='li' class="videos" :to="{ name: 'videos' }">
 	<span><font-awesome-icon icon="film" />
 	  VIDEOS

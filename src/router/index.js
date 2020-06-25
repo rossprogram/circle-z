@@ -11,6 +11,7 @@ import Editor from '../views/Editor.vue';
 import Chalkboard from '../views/Chalkboard.vue';
 import Auditorium from '../views/Auditorium.vue';
 import Videos from '../views/Videos.vue';
+import Files from '../views/Files.vue';
 
 Vue.use(VueRouter);
 
@@ -45,6 +46,11 @@ const routes = [
     path: '/videos',
     name: 'videos',
     component: Videos,
+  },
+  {
+    path: '/files',
+    name: 'files',
+    component: Files,
   },
   
   {

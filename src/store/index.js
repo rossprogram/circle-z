@@ -19,11 +19,19 @@ let persistPath = '/';
 if (electron) {
   if (electron.remote) persistPath = electron.remote.app.getPath('userData');
   else persistPath = electron.app.getPath('userData');
+
+  if (electron.remote) persistPath = electron.remote.app.getPath('userData');
+  else persistPath = electron.app.getPath('userData');  
 }
 
 let showAnnouncement = function () {};
+let openExternal = function (url) { console.log('Failed to open', url); };
 
 if (electron) {
+  if (electron.shell) {
+    openExternal = electron.shell.openExternal;
+  }
+
   if (electron.dialog) {
     showAnnouncement = function (e) {
       electron.dialog.showMessageBox({
@@ -126,6 +134,7 @@ export default new Vuex.Store({
     playingVideo: '',
 
     texFiles: {},
+    fileList: [],
   },
 
   getters: {
@@ -137,11 +146,15 @@ export default new Vuex.Store({
         const port = state.self.mumblePort;
         return `mumble://${username}:${password}@${server}:${port}/`;
       } 
-        return `mumble://${state.server}/`;
+      return `mumble://${state.server}/`;
     },
   },
   
   mutations: {
+    setFileList(state, { filenames }) {
+      state.fileList = filenames;
+    },
+    
     addToFamily(state, id) {
       if (state.family.indexOf(id) < 0) {
         state.family.push(id);
@@ -685,6 +698,14 @@ export default new Vuex.Store({
 
         commit('addTexFile', { filename, body });
       });
+
+      server.on('openFile', async (filename, url) => {
+        openExternal(url);
+      });
+
+      server.on('setFileList', async (filenames) => {
+        commit('setFileList', { filenames });
+      });      
     },
 
     sendMessage({ state, dispatch, commit }, // eslint-disable-line no-unused-vars
@@ -881,7 +902,15 @@ export default new Vuex.Store({
 
     getTexFiles({ commit }) { // eslint-disable-line no-unused-vars
       service.getTexFiles();
-    },    
+    },
+
+    getFiles({ commit }) { // eslint-disable-line no-unused-vars
+      service.getFiles();
+    },
+
+    requestFile({ commit }, filename) { // eslint-disable-line no-unused-vars
+      service.requestFile(filename);
+    },            
 
     setFamilyMembership({ commit }, { id, membership }) {
       if (membership) commit('addToFamily', id);
