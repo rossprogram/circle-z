@@ -425,7 +425,7 @@ font-family: "Computer Modern Serif";
 @keyframes shadow-pulse
 {
      0% {
-          box-shadow: 0 0 0 0px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 0 0 0px rgba(0, 0, 0, 0.3);
      }
      100% {
           box-shadow: 0 0 0 2pt rgba(0, 0, 0, 0);
