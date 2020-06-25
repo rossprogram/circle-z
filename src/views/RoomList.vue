@@ -13,7 +13,8 @@
 	  <span class="hashes">
 	    <font-awesome-icon icon="hashtag"
 			       v-for="n in roomname.replace(/[^#]/g,'').length" v-bind:key="n" />
-	  </span><span class="room-name">{{ roomname.replace(/#/g,'') }}</span>
+	  </span><span class="room-name">{{ roomname.replace(/#/g,'') }}
+	    <sup class="has-staff" v-if="hasStaff(roomname)"><font-awesome-icon icon="star"/></sup></span>
 	  <span><Tex>{{rooms[roomname].topic}}</Tex></span>
 	</span>
 	<span class="user-count">
@@ -66,7 +67,7 @@ export default {
   },
   
   computed: {
-    ...mapState(['rooms', 'self']),
+    ...mapState(['rooms', 'self', 'users']),
 
     newRoom: {
       get() {
@@ -105,6 +106,15 @@ export default {
   },
   methods: {
     ...mapActions(['list']),
+
+    hasStaff(roomname) {
+      if (this.rooms[roomname]) {
+	return this.rooms[roomname].users.filter((u) => this.users[u].isStaff).length > 0;
+      } 
+
+      return false;
+    },
+
 
     refresh() {
       this.list();
@@ -196,6 +206,11 @@ ul.user-list li + li:before {
 
 ul.user-list li {
     display: inline;
+}
+
+.has-staff {
+    opacity: 0.2;
+    float: right;
 }
 
 </style>

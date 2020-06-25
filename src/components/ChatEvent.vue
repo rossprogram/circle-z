@@ -64,7 +64,7 @@ export default {
     text-align: right;
     vertical-align: top;
     overflow: hidden;
-    width: 1in;
+    width: 1.5in;
 }
 
 .action {
@@ -104,7 +104,7 @@ export default {
     font-family: "Computer Modern Serif";
     display: inline-block;
     vertical-align: text-top;
-    width: calc(100% - 1in);
+    width: calc(100% - 1.5in);
 }
 
 .message div {
