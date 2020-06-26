@@ -20,6 +20,7 @@
 	  <ChatEvent style="opacity: 0.5;"  :actor="self.id" :key="commandline" :message="commandline"/>
 	</div>
 	<input type="text" v-model="commandline" class="message"
+	       v-on:keyup.up="historyUp"
 	       v-on:keyup.enter="processCommand"
 	       placeholder="Type your message…"/>
       </div>
@@ -83,6 +84,7 @@ export default {
 
   data() {
     return {
+      history: [],
       commandline: '',
     };
   },
@@ -182,6 +184,14 @@ export default {
       menu.popup(getCurrentWindow());
     },
 
+    historyUp() {
+      const m = this.history.filter((x) => x.startsWith(this.commandline));
+      if (m.length > 0) {
+	const last = m[m.length - 1];
+	this.commandline = last;
+      }
+    },
+
     editor() {
       const routeData = this.$router.resolve({
 	name: 'editor',
@@ -226,6 +236,7 @@ export default {
 	  room: this.$route.params.id,
 	  topic: '',
 	});
+	this.history.push(this.commandline);
 	this.commandline = '';
 	return;
       } if (this.commandline.match(/^\/topic /)) {
@@ -233,6 +244,7 @@ export default {
 	  room: this.$route.params.id,
 	  topic: this.commandline.slice(7), 
 	});
+	this.history.push(this.commandline);
 	this.commandline = '';
 	return;
       }
@@ -241,6 +253,7 @@ export default {
 	  room: this.$route.params.id,
 	  message: this.commandline.slice(4),
 	});
+	this.history.push(this.commandline);
 	this.commandline = '';
 	return;
       }
@@ -249,6 +262,7 @@ export default {
 	  room: this.$route.params.id,
 	  message: this.commandline.slice(7),
 	});
+	this.history.push(this.commandline);
 	this.commandline = '';
 	return;
       }
@@ -257,6 +271,7 @@ export default {
 	  room: this.$route.params.id,
 	  message: this.commandline.slice(8),
 	});
+	this.history.push(this.commandline);
 	this.commandline = '';
 	return;
       }
@@ -265,6 +280,7 @@ export default {
 	room: this.$route.params.id,
 	message: this.commandline, 
       });
+      this.history.push(this.commandline);
       this.commandline = '';
     },
   },
