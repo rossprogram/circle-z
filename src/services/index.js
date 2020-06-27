@@ -116,6 +116,34 @@ export function getDocument(id) {
   });
 }
 
+export function clearDocument(id) {
+  theSocket.sendMessage({
+    type: 'clearDocument',
+    id,
+  });
+}
+
+export function submitDocument(id) {
+  theSocket.sendMessage({
+    type: 'submitDocument',
+    id,
+  });
+}
+
+export function gradeDocument(id) {
+  theSocket.sendMessage({
+    type: 'gradeDocument',
+    id,
+  });
+}
+
+export function completeDocument(id) {
+  theSocket.sendMessage({
+    type: 'completeDocument',
+    id,
+  });
+}
+
 export function patchDocument(id, patch, checksum) {
   theSocket.sendMessage({
     type: 'patchServerDocument',
@@ -280,6 +308,24 @@ export function requestFile(filename) {
   });
 }
 
+export function getTemplates() {
+  theSocket.sendMessage({
+    type: 'getTemplates',
+  });
+}
+
+export function getProblemSets() {
+  theSocket.sendMessage({
+    type: 'getProblemSets',
+  });
+}
+
+export function getGradingQueue() {
+  theSocket.sendMessage({
+    type: 'getGradingQueue',
+  });
+}
+
 function error(socket, emitter, data) {
   emitter.emit('error', data.error);
 }
@@ -387,6 +433,18 @@ function setFileList(socket, emitter, data) {
   emitter.emit('setFileList', data.filenames);
 }
 
+function setTemplates(socket, emitter, data) {
+  emitter.emit('setTemplates', data.templates);
+}
+
+function setProblemSets(socket, emitter, data) {
+  emitter.emit('setProblemSets', data.sets);
+}
+
+function setMetadatas(socket, emitter, data) {
+  emitter.emit('setMetadatas', data.metadatas);
+}
+
 const callbacks = {
   error,
   login,
@@ -418,8 +476,13 @@ const callbacks = {
 
   addTexFile,
 
+  setTemplates,
+  setProblemSets,
+  
   openFile,
   setFileList,
+
+  setMetadatas,
 };
 
 function handleMessage(socket, emitter, data) {

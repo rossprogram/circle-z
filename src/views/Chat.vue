@@ -59,8 +59,7 @@ function showErrorBox(e) {
 
 export default {
   computed: {
-    ...mapState(['nick', 'self', 'password',
-		 'transcripts', 'rooms']),
+    ...mapState(['self', 'users', 'transcripts', 'rooms']),
     
     transcript: {
       get() {
@@ -76,7 +75,12 @@ export default {
 
     usersInRoom: {
       get() {
-	if (this.room) return this.room.users;
+	if (this.room) {
+	  return this.room.users.filter((u) => {
+	    if (this.users[u]) return this.users[u].isConnected;
+	    return false;
+	  });
+	}
 	return [];
       },
     },

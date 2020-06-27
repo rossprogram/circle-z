@@ -95,6 +95,8 @@ export default new Vuex.Store({
     userIds: [],
     users: {},
     family: [],
+    self: {},
+    isStaff: false,
     
     roomnames: [],
     rooms: {},
@@ -103,6 +105,8 @@ export default new Vuex.Store({
     shadows: {},
     cursors: {},
     selections: {},
+    templates: [],
+    problemSets: [],
     
     blackboards: {},
     pointers: {},
@@ -110,6 +114,8 @@ export default new Vuex.Store({
     readPosts: [],
     posts: {},
     rootPosts: [],
+
+    metadatas: {},
     
     counter: 1,
 
@@ -154,6 +160,34 @@ export default new Vuex.Store({
     setFileList(state, { filenames }) {
       state.fileList = filenames;
     },
+
+    setProblemSets(state, { sets }) {
+      state.problemSets = sets;
+    },
+
+    setMetadatas(state, { metadatas }) {
+      metadatas.forEach((m) => {
+        const {
+          name, author, template,
+          submitted, submittedAt,
+          graded, gradedAt,
+          completed, completedAt, 
+        } = m;
+        
+        if (state.metadatas[name] === undefined) {
+          Vue.set(state.metadatas, name, {});
+        }
+
+        Vue.set(state.metadatas[name], 'author', author);
+        Vue.set(state.metadatas[name], 'template', template);
+        Vue.set(state.metadatas[name], 'submitted', submitted);
+        Vue.set(state.metadatas[name], 'submittedAt', submittedAt);
+        Vue.set(state.metadatas[name], 'graded', graded);
+        Vue.set(state.metadatas[name], 'gradedAt', gradedAt);
+        Vue.set(state.metadatas[name], 'completed', completed);
+        Vue.set(state.metadatas[name], 'completedAt', completedAt);                
+      });
+    },    
     
     addToFamily(state, id) {
       if (state.family.indexOf(id) < 0) {
@@ -169,6 +203,10 @@ export default new Vuex.Store({
 
     addTexFile(state, { filename, body }) {
       Vue.set(state.texFiles, filename, body);
+    },
+
+    setTemplates(state, { templates }) {
+      state.templates = templates;
     },
     
     showSnack(state, snack) {
@@ -202,6 +240,7 @@ export default new Vuex.Store({
     
     setSelf(state, self) {
       state.self = self;
+      state.isStaff = self.isStaff;
     },
 
     updateVideos(state, videos) {
@@ -699,13 +738,25 @@ export default new Vuex.Store({
         commit('addTexFile', { filename, body });
       });
 
-      server.on('openFile', async (filename, url) => {
+      server.on('openFile', (filename, url) => {
         openExternal(url);
       });
 
-      server.on('setFileList', async (filenames) => {
+      server.on('setFileList', (filenames) => {
         commit('setFileList', { filenames });
-      });      
+      });
+
+      server.on('setTemplates', (templates) => {
+        commit('setTemplates', { templates });
+      });
+
+      server.on('setProblemSets', (sets) => {
+        commit('setProblemSets', { sets });
+      });
+
+      server.on('setMetadatas', (metadatas) => {
+        commit('setMetadatas', { metadatas });
+      });                  
     },
 
     sendMessage({ state, dispatch, commit }, // eslint-disable-line no-unused-vars
@@ -750,6 +801,26 @@ export default new Vuex.Store({
     fetchDocument({ commit }, // eslint-disable-line no-unused-vars
                   id) {
       service.getDocument(id);
+    },
+
+    clearDocument({ commit }, // eslint-disable-line no-unused-vars
+                  id) {
+      service.clearDocument(id);
+    },
+
+    submitDocument({ commit }, // eslint-disable-line no-unused-vars
+                  id) {
+      service.submitDocument(id);
+    },
+    
+    gradeDocument({ commit }, // eslint-disable-line no-unused-vars
+                  id) {
+      service.gradeDocument(id);
+    },
+
+    completeDocument({ commit }, // eslint-disable-line no-unused-vars
+                  id) {
+      service.completeDocument(id);
     },
 
     updateDocumentCursor({ state, commit },
@@ -916,6 +987,18 @@ export default new Vuex.Store({
       if (membership) commit('addToFamily', id);
       else commit('removeFromFamily', id);
     },
+
+    getTemplates({ commit }) { // eslint-disable-line no-unused-vars
+      service.getTemplates();
+    },
+
+    getProblemSets({ commit }) { // eslint-disable-line no-unused-vars
+      service.getProblemSets();
+    },    
+
+    getGradingQueue({ commit }) { // eslint-disable-line no-unused-vars
+      service.getGradingQueue();
+    },    
   },
 
   modules: {

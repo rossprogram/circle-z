@@ -5,6 +5,9 @@
     <span id="onlyOnlineCheckbox">
       <input type="checkbox" id="onlyOnline" name="onlyOnline" v-model="onlyOnline"/>
       <label for="onlyOnline">only online</label>
+
+      <input type="checkbox" id="onlyFamily" name="onlyFamily" v-model="onlyFamily"/>
+      <label for="onlyFamily">only family</label>
     </span>
   </div>
   <div class="cards">
@@ -37,17 +40,19 @@ export default {
     return {
       search: '',
       onlyOnline: true,
+      onlyFamily: true,
     };
   },
   
   computed: {
-    ...mapState(['userIds', 'users']),
+    ...mapState(['userIds', 'users', 'family']),
 
     filteredUserIds: {
       get() {
 	return this.userIds.filter(
 	  (id) => JSON.stringify(this.users[id]).toLowerCase().match(this.search.toLowerCase())
-	    && ((!this.onlyOnline) || (this.users[id].isConnected)),
+	    && ((!this.onlyOnline) || (this.users[id].isConnected))
+	    && ((!this.onlyFamily) || (this.family.indexOf(id) >= 0)),	  
 	).sort((a, b) => {
 	  const ua = this.users[a].username;
 	  const ub = this.users[b].username;

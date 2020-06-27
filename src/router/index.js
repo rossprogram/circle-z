@@ -12,6 +12,8 @@ import Chalkboard from '../views/Chalkboard.vue';
 import Auditorium from '../views/Auditorium.vue';
 import Videos from '../views/Videos.vue';
 import Files from '../views/Files.vue';
+import ProblemSets from '../views/ProblemSets.vue';
+import GradingQueue from '../views/GradingQueue.vue';
 
 Vue.use(VueRouter);
 
@@ -24,6 +26,17 @@ const routes = [
     path: '/about',
     name: 'about',
     component: About,
+  },
+
+  {
+    path: '/problem-sets',
+    name: 'problem-sets',
+    component: ProblemSets,
+  },
+  {
+    path: '/grading',
+    name: 'grading',
+    component: GradingQueue,
   },
   
   {

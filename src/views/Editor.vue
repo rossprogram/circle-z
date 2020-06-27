@@ -16,6 +16,21 @@
 	    </span>
 	    <button id="open" @click="open"><font-awesome-icon icon="folder-open" /> Open&hellip;</button>
 	    <button id="save" @click="save"><font-awesome-icon icon="save" /> Save&hellip;</button>
+
+	    <button v-if="metadata.template" :disabled="completed || submitted"
+		    id="submitForGrading" @click="submitForGrading" title="Submit for grading">
+	      <font-awesome-icon icon="inbox" /> Submit</button>
+
+	    <button id="returnForRedo" v-if="metadata.template && isStaff"
+		    :disabled="completed || graded || (!submitted)"
+		    @click="returnForRedo" title="Return for redo">
+	      <font-awesome-icon icon="sync" /> Return</button>
+
+	    <button id="markAsDone" v-if="metadata.template && isStaff"
+		    :disabled="completed || (!submitted)"
+		    @click="markAsDone" title="Mark as complete">
+	      <font-awesome-icon icon="check" /> Complete</button>
+	    
 	    <button id="erase" @click="erase"><font-awesome-icon icon="eraser" /> Erase</button>
 	  </div>
 	  <div id="viewer">
@@ -72,8 +87,29 @@ function showErrorBox(e) {
 export default {
   computed: {
     ...mapState(['documents', 'cursors', 'selections',
-		 'texFiles',
+		 'texFiles', 'metadatas', 'isStaff',
 		 'users', 'self', 'connected']),
+
+    metadata: {
+      get() {
+	if (this.metadatas[this.$route.params.id]) return this.metadatas[this.$route.params.id];
+	return {
+	  template: '', submitted: false, graded: false, completed: false, 
+	};
+      },
+    },
+
+    submitted() {
+      return this.metadata.submitted;
+    },
+
+    graded() {
+      return this.metadata.graded;
+    },
+
+    completed() {
+      return this.metadata.completed;
+    },
 
     needsRecompile: {
       get() {
@@ -119,6 +155,9 @@ export default {
 		   'updateDocumentCursor', 'updateDocumentSelection',
 		   'getTexFiles',
 		   'clearDocument',
+		   'submitDocument',
+		   'gradeDocument',
+		   'completeDocument',		   		   		   
 		  ]),
 
     maybeCompile(e) {
@@ -189,6 +228,45 @@ export default {
 	this.clearDocument(this.$route.params.id);
       }
     },
+
+    async submitForGrading() {
+      const result = await dialog.showMessageBox({
+        type: 'question',
+        message: 'Are you sure you want to submit your work to be graded?',
+        buttons: ['Yes', 'No'],
+        defaultId: 1,
+      });
+
+      if (result.response === 0) {
+	this.submitDocument(this.$route.params.id);
+      }
+    },
+
+    async returnForRedo() {
+      const result = await dialog.showMessageBox({
+        type: 'question',
+        message: 'Are you sure you want to return this work for a redo?',
+        buttons: ['Yes', 'No'],
+        defaultId: 1,
+      });
+
+      if (result.response === 0) {
+	this.gradeDocument(this.$route.params.id);
+      }
+    },
+    
+    async markAsDone() {
+      const result = await dialog.showMessageBox({
+        type: 'question',
+        message: 'Are you sure you want to mark this problem set as completed?',
+        buttons: ['Yes', 'No'],
+        defaultId: 1,
+      });
+
+      if (result.response === 0) {
+	this.completeDocument(this.$route.params.id);
+      }
+    },    
     
     compile() {
       this.terminalOutput = '';

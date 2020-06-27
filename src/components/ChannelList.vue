@@ -42,8 +42,22 @@
       </ul>
     </div>
 
+
     <h3></h3>     
     <ul>
+      <router-link v-if="connected" tag='li' class="problem-sets" :to="{ name: 'problem-sets' }">
+	<span><font-awesome-icon icon="question-circle" />
+	  PROBLEM SETS
+	</span>
+      </router-link>
+
+      <router-link v-if="connected && isStaff" tag='li' class="grading"
+		   :to="{ name: 'grading' }">
+	<span><font-awesome-icon icon="gavel" />
+	  GRADING QUEUE
+	</span>
+      </router-link>
+
       <router-link v-if="connected" tag='li' class="files" :to="{ name: 'files' }">
 	<span><font-awesome-icon icon="file-pdf" />
 	  FILES
@@ -116,7 +130,7 @@ const { remote } = require('electron');
 export default {
   computed: {
     ...mapState(['server', 'connected', 'connecting',
-		 'unreadCounts', 'joinedRooms',
+		 'unreadCounts', 'joinedRooms', 'isStaff',
 		 'privateTranscripts', 'users', 'privateUnreadCounts',
 		]),
 
