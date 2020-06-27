@@ -7,7 +7,7 @@ import { fork } from 'child_process';
 import { unzip } from 'zlib';
 import * as library from './library';
 
-import texCorePath from '../tex/core.2a90ceef4c9e.dump.gz';
+import texCorePath from '../tex/core.4b580e5b16c4.dump.gz';
 import texBinaryPath from '../tex/out.8c3fe3450cb5.wasm';
 
 const pages = 1500;
