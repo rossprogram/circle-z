@@ -14,6 +14,9 @@
 	      <label for="zoom">Zoom</label>
 	      <input name="zoom" type="number" max="300" min="20" step="10" v-model="scalePercent"/>
 	    </span>
+	    <button id="open" @click="open"><font-awesome-icon icon="folder-open" /> Open&hellip;</button>
+	    <button id="save" @click="save"><font-awesome-icon icon="save" /> Save&hellip;</button>
+	    <button id="erase" @click="erase"><font-awesome-icon icon="eraser" /> Erase</button>
 	  </div>
 	  <div id="viewer">
 	    <Dvi :data="dvi" v-bind:style="{zoom: `${scalePercent}%`}"/>
@@ -39,8 +42,9 @@ import { AceMultiCursorManager, AceMultiSelectionManager, AceRangeUtil } from '@
 import '@convergencelabs/ace-collab-ext/css/ace-collab-ext.css';
 import { debounce } from 'underscore';
 import stringHash from 'string-hash';
+import fs from 'fs';
 
-const { getCurrentWindow } = require('electron').remote;
+const { getCurrentWindow, dialog } = require('electron').remote;
 const { ipcRenderer } = require('electron');
 
 const { Range } = ace;
@@ -55,6 +59,14 @@ function stringToColor(str) {
     colour += (`00${value.toString(16)}`).substr(-2);
   }
   return colour;
+}
+
+function showErrorBox(e) {
+  dialog.showMessageBox({
+    type: 'error',
+    message: e,
+    buttons: ['OK'],
+  });
 }
 
 export default {
@@ -106,12 +118,75 @@ export default {
     ...mapActions(['updateDocument', 'fetchDocument', 'who',
 		   'updateDocumentCursor', 'updateDocumentSelection',
 		   'getTexFiles',
+		   'clearDocument',
 		  ]),
 
     maybeCompile(e) {
       if (e.ctrlKey || e.shiftKey || e.altKey || e.metaKey) {
 	this.compile();
 	e.preventDefault();
+      }
+    },
+
+    open() {
+      dialog.showOpenDialog({
+	properties: ['openFile'],
+	filters: [{
+	  name: 'TeX file',
+	  extensions: ['tex'],
+	}],
+      }).then((result) => {
+	if (result.canceled === false) {
+	  const filePath = result.filePaths[0];
+	  
+	  fs.readFile(filePath, (err, data) => {
+	    if (err) {
+	      showErrorBox(err.toString());
+	    } else if (data.length > 64 * 1024) {
+		showErrorBox('Your .tex file must be under 64 kilobytes.');
+	      } else {
+		this.editor.setValue(data.toString().replace(/\r/g, ''), -1);
+	      }
+	  });
+	}
+      }).catch((err) => {
+	showErrorBox(err.toString());
+      });      
+    },
+
+    save() {
+      dialog.showSaveDialog({
+	filters: [{
+	  name: 'TeX file',
+	  extensions: ['tex'],
+	}],
+      }).then((result) => {
+	if (result.canceled === false) {
+	  const { filePath } = result;
+
+	  fs.writeFile(filePath, this.editor.getValue(),
+		       (err) => {
+			 if (err) {
+			   showErrorBox(err.toString());
+			 }
+		       });
+	}
+      }).catch((err) => {
+	showErrorBox(err.toString());
+      });      
+
+    },    
+    
+    async erase() {
+      const result = await dialog.showMessageBox({
+        type: 'question',
+        message: 'Are you sure you want to erase your work on this?',
+        buttons: ['Yes', 'No'],
+        defaultId: 1,
+      });
+
+      if (result.response === 0) {
+	this.clearDocument(this.$route.params.id);
       }
     },
     
@@ -420,8 +495,18 @@ font-family: "Computer Modern Serif";
     margin: 0;
     margin-right: 6pt;
     vertical-align: top;
-}
+  }
 
+  #zoom {
+      margin-right: 6pt;
+  }
+
+  #erase {
+      float: right;
+      margin-left: auto;
+      margin-right: 0;
+  }
+  
 @keyframes shadow-pulse
 {
      0% {
