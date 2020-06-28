@@ -39,8 +39,8 @@ export default {
   data() {
     return {
       search: '',
-      onlyOnline: true,
-      onlyFamily: true,
+      onlyOnline: false,
+      onlyFamily: false,
     };
   },
   
