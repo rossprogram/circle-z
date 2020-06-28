@@ -93,6 +93,26 @@ function createWindow() {
         { role: 'togglefullscreen' },
       ],
     },
+
+    {
+      label: 'History',
+      submenu: [
+        {
+          label: 'Back',
+          click: async () => {
+            win.webContents.goBack();
+          },
+          accelerator: 'Alt+Left',
+        },
+        {
+          label: 'Forward',
+          click: async () => {
+            win.webContents.goForward();
+          },
+          accelerator: 'Alt+Right',
+        },
+      ],
+    },
     // { role: 'windowMenu' }
     {
       label: 'Window',
