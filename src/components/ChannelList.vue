@@ -82,6 +82,12 @@
 	</span>
       </li>
 
+      <li class="douyu" @click="douyu">
+	<span><font-awesome-icon icon="camera" />
+	  DOUYU
+	</span>
+      </li>
+
       <li class="zoom" @click="zoom">
 	<span><font-awesome-icon icon="video" />
 	  ZOOM
@@ -181,6 +187,9 @@ export default {
     zoom() {
       remote.shell.openExternal('https://zoom.us/my/rossmath?pwd=R2dSMG1ETDltRVNGT2tvT1hDcEg5dz09');
     },
+    douyu() {
+      remote.shell.openExternal('https://www.douyu.com/8934975');
+    },    
     mumble() {
       remote.shell.openExternal(this.mumbleUrl);
     },

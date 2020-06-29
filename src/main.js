@@ -7,7 +7,7 @@ import {
   faStepForward, faStepBackward, faEraser, faHammer, faMailBulk, faReply,
   faThumbsUp, faThumbsDown, faClock, faPaperPlane, faLevelUpAlt, faFilm,
   faMicrophone, faSchool, faStar, faUserFriends, faQuestionCircle, faGavel, faCheck,
-  faInbox, faTasks, faFolderOpen, faSave,
+  faInbox, faTasks, faFolderOpen, faSave, faCamera,
 } from '@fortawesome/free-solid-svg-icons';
 import { faTwitch } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
@@ -18,6 +18,7 @@ import store from './store';
 import 'splitpanes/dist/splitpanes.css';
 
 library.add(faTwitch,
+            faCamera,
             faCheck,
             faFolderOpen,
             faSave,
