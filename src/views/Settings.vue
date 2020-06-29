@@ -51,12 +51,14 @@
     </div>
 
     <hr/>
+    <p>Your local time is {{ localTime }}, which is {{ localEasternTime }} in the Ross timezone.</p>
     <div v-if="connected">
       <p>As of {{ pingTimeRelative }}, there
 	{{ (connectedUserCount === 1) ? 'was' : 'were' }} {{ connectedUserCount }} connected
 	user{{ (connectedUserCount === 1) ? '' : 's' }}.</p>
       
       <p>The server time is {{ serverTime }}.</p>
+
       <p>The server is handling {{ requestsPerTimeUnit }}
       and using {{ Math.ceil(serverMemoryUsed / 1024 / 1024) }} megabytes of memory.</p>
 
@@ -85,7 +87,7 @@
 // @ is an alias to /src
 import Header from '@/components/Header.vue';
 import { mapActions, mapState } from 'vuex';
-import moment from 'moment';
+import * as moment from 'moment-timezone';
 
 export default {
   name: 'Settings',
@@ -96,6 +98,7 @@ export default {
 
   data() {
     return {
+      now: new Date(),
       announcement: '',
     };
   },
@@ -115,6 +118,14 @@ export default {
       return moment(this.pingTime).fromNow();
     },
 
+    localEasternTime() {
+      return moment(this.now).tz('America/New_York').format('LLLL');
+    },
+
+    localTime() {
+      return moment(this.now).format('LLLL');
+    },
+    
     requestsPerTimeUnit() {
       if ((60 * this.requestsPerSecond) < 1) {
 	return `${Math.ceil(this.requestsPerSecond * 60 * 60)} requests per hour`;
@@ -125,7 +136,17 @@ export default {
       return `${Math.ceil(this.requestsPerSecond)} requests per second`;
     },
   },
+  
+  created() {
+    this.interval = setInterval(() => { this.now = new Date(); },
+					500);
     
+  },
+
+  beforeDestroy() {
+    clearInterval(this.interval);
+  },
+  
   methods: {
     ...mapActions([
       'makeAnnouncement',

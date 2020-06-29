@@ -17,7 +17,7 @@
       <div class="card" @click="open(id)">
 	<div class="title">
 	  <span><User :userId="metadatas[id].author"/></span>/
-	  <span>{{ metadatas[id].template.replace(/.tex$/,'') }}</span>
+	  <span>{{ metadatas[id].template }}</span>
 
 	  <span class="filetype">
 	    <span title="Submitted for grading" class="submitted" v-if="metadatas[id].submitted">

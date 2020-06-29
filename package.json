@@ -1,6 +1,6 @@
 {
   "name": "circle-z",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A chat client for online math courses",
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -35,6 +35,7 @@
     "lru-cache": "^5.1.1",
     "mathjax-full": "^3.0.5",
     "moment": "^2.24.0",
+    "moment-timezone": "^0.5.31",
     "node-fetch": "^2.6.0",
     "pdfjs-dist": "^2.3.200",
     "splitpanes": "^2.2.1",
