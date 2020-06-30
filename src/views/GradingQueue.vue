@@ -11,6 +11,10 @@
 
     <input type="checkbox" id="onlyUngraded" name="onlyUngraded" v-model="onlyUngraded"/>
     <label for="onlyUngraded">ungraded</label>
+
+    <input type="checkbox" id="onlyJuniorCounselor"
+	   name="onlyJuniorCounselor" v-model="onlyJuniorCounselor"/>
+    <label for="onlyJuniorCounselor">junior counselors</label>    
   </div>
   <div class="cards">
     <div class="card-item" v-for="id in filtered" v-bind:key="id">
@@ -48,7 +52,7 @@ import moment from 'moment';
 
 export default {
   computed: {
-    ...mapState(['metadatas', 'family', 'self', 'templates', 'problemSets']),
+    ...mapState(['metadatas', 'family', 'self', 'users', 'templates', 'problemSets']),
 
 
     filtered: {
@@ -65,6 +69,13 @@ export default {
 	  if (this.onlyUngraded) {
 	    if (m.submitted === false) return false;
 	  }
+
+	  if (this.onlyJuniorCounselor) {
+	    if (this.users[m.author]) {
+	      if (this.users[m.author].isJuniorCounselor) return true;
+	    }
+	    return false;
+	  }	  
 	  
 	  return true;
 	});
@@ -92,6 +103,7 @@ export default {
       search: '',
       onlyFamily: true,
       onlyUngraded: true,
+      onlyJuniorCounselor: false,
     };
   },
   
