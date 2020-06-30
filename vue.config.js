@@ -29,6 +29,12 @@ module.exports = {
           .use('file-loader')
           .loader('file-loader')
           .end();
+        config.module
+          .rule('cls')
+          .test(/\.cls$/)
+          .use('file-loader')
+          .loader('file-loader')        
+          .end();
 
         //const wasmRule = config.module.rule('wasm');
         //wasmRule.uses.clear();

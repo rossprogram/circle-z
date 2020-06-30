@@ -9,6 +9,7 @@ import * as library from './library';
 
 import texCorePath from '../tex/core.4b580e5b16c4.dump.gz';
 import texBinaryPath from '../tex/out.8c3fe3450cb5.wasm';
+import rossClassPath from '../tex/ross.cls';
 
 const pages = 1500;
 
@@ -20,11 +21,23 @@ const p = fork(require.resolve('./child.js'), ['args'], {
 
 ////////////////////////////////////////////////////////////////
 
+let rossClass;
+
+fs.readFile(path.join(__dirname, rossClassPath), (err, data) => {
+  if (err) {
+    throw err;
+  } else {
+    rossClass = data;
+  }
+});
+
+////////////////////////////////////////////////////////////////
+
 let compiled;
 
 fs.readFile(path.join(__dirname, texBinaryPath), (err, texBinary) => {
   if (err) {
-    throw err;
+    throw err;  
   } else {
     console.log('Loaded texBinary with', texBinary.length, 'bytes');
     compiled = new WebAssembly.Module(texBinary);
@@ -101,6 +114,8 @@ function runTex() {
 
 ipcMain.on('tex', async (event, document, texmf) => {
   console.log('Launching TeX...');
+
+  if (rossClass) texmf['ross.cls'] = rossClass;
   
   library.deleteEverything();
   library.setTexput(document);
