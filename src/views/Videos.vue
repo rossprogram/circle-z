@@ -3,7 +3,7 @@
   <splitpanes class="default-theme">
     <pane min-size="50" size="70" max-size="80">
       <video-player v-if="playingVideo"
-	:src="`http://hls.rossprogram.org.s3.us-west-1.amazonaws.com/${playingVideo}.m3u8`"
+	:src="`http://hls.rossprogram.org.s3.amazonaws.com/${playingVideo}.m3u8`"
 	type="application/x-mpegURL" :options="videoOptions"/>
     </pane>
     <pane size="20">
@@ -12,7 +12,7 @@
 	    @click="playVideo(video.video)" v-for="video in videos" :key="video.video">
 	  <span class="title"><Tex>{{ video.title }}</Tex></span>
 	  <span class="author">{{ video.author }}</span>
-	  <img :src="`http://thumbnails.rossprogram.org.s3.us-west-1.amazonaws.com/${video.video}.0000001.jpg`"/>
+	  <img :src="`http://thumbnails.rossprogram.org.s3.amazonaws.com/${video.video}.0000001.jpg`"/>
 	</li>
       </ul>
     </pane>
