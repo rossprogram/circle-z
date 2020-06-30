@@ -51,7 +51,9 @@
     </div>
 
     <hr/>
+
     <p>Your local time is {{ localTime }}, which is {{ localEasternTime }} in the Ross timezone.</p>
+    
     <div v-if="connected">
       <p>As of {{ pingTimeRelative }}, there
 	{{ (connectedUserCount === 1) ? 'was' : 'were' }} {{ connectedUserCount }} connected
@@ -62,6 +64,25 @@
       <p>The server is handling {{ requestsPerTimeUnit }}
       and using {{ Math.ceil(serverMemoryUsed / 1024 / 1024) }} megabytes of memory.</p>
 
+      <hr/>
+      
+      <p>Here is your login information for Mumble.</p>
+
+      <dl>
+	<dt>Username:</dt>
+	<dd>{{ self.username }}</dd>
+	<dt>Password:</dt>
+	<dd>{{ self.mumblePassword }}</dd>
+	<dt>Server:</dt>
+	<dd>{{ self.mumbleServer }}</dd>	  	  	  
+	<dt>Port:</dt>
+	<dd>{{ self.mumblePort }}</dd>
+      </dl>
+
+      <p>Once you log in successfully into Mumble once, then you will
+	be able to use a certificate and will not need to re-enter the
+	above credentials.</p>
+      
     </div>
 
     <div v-if="self && self.isStaff && connected">
@@ -221,4 +242,10 @@ hr {
     display: inline-block;
     margin-right: 0.2in;
 }
+
+dd {
+    user-select: all;
+}
+	
+
 </style>
