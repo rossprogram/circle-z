@@ -93,8 +93,8 @@ export default {
 	let lb = 0;
 	
 	if (this.sortBy === 'default') {
-    la = a.upvoteCount - a.downvoteCount - (new Date(a.createdAt)).getTime() / 10000000;
-	  lb = b.upvoteCount - b.downvoteCount - (new Date(b.createdAt)).getTime() / 10000000;
+    la = a.upvoteCount - a.downvoteCount + (new Date(a.createdAt)).getTime() / 10000000;
+	  lb = b.upvoteCount - b.downvoteCount + (new Date(b.createdAt)).getTime() / 10000000;
   } else if (this.sortBy === 'top') {
 	  la = a.upvoteCount - a.downvoteCount;
 	  lb = b.upvoteCount - b.downvoteCount;
