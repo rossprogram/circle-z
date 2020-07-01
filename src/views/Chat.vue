@@ -104,7 +104,7 @@ export default {
       container.scrollTop = container.scrollHeight;
     },
 
-    usersInRoom(currentUsers, previousUsers) {
+    usersInRoom(currentUsers, previousUsers) { // eslint-disable-line no-unused-vars
       // People tell me they find this distracting
       
       /*

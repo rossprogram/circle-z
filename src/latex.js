@@ -117,7 +117,6 @@ ipcMain.on('tex', async (event, document, texmf) => {
 
   if (rossClass) texmf['ross.cls'] = rossClass;
 
-  str = str.replace(regxp, ' ');
   const cleanedDocument = document
       .replace(/\r\n/g, '\n')
       .replace(/\r/g, '\n');
