@@ -1,5 +1,6 @@
 <template>
-  <video disablepictureinpicture ref="videoPlayer" class="video-js"></video>
+<video disablepictureinpicture ref="videoPlayer" class="video-js"
+       ></video>
 </template>
 
 <script>
@@ -43,13 +44,15 @@ export default {
   mounted() {
     this.options.controlBar = {
       children: [
-         'playToggle',
-         'progressControl',
-         'volumePanel',
-         'qualitySelector',
-         'fullscreenToggle',
+        'playToggle',
+        'progressControl',
+        'volumePanel',
+        'qualitySelector',
+	'playbackRateMenuButton',
+        'fullscreenToggle',
       ],
     };
+    this.options.playbackRates = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
     this.player = videojs(this.$refs.videoPlayer, this.options, () => {
       console.log('onPlayerReady', this);
       console.log(this.src);
