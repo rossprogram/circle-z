@@ -105,9 +105,11 @@ export default {
     },
 
     usersInRoom(currentUsers, previousUsers) {
+      // People tell me they find this distracting
+      
+      /*
       currentUsers.forEach((user) => {
 	if (previousUsers.indexOf(user) < 0) {
-	  // announce that user joined
 	  this.announceUserJoin({
 	    room: this.$route.params.id,
 	    user,
@@ -117,13 +119,13 @@ export default {
 
       previousUsers.forEach((user) => {
 	if (currentUsers.indexOf(user) < 0) {
-	  // announce that user left
 	  this.announceUserPart({
 	    room: this.$route.params.id,
 	    user,
 	  });	  
 	}
       });
+      */
     },
   },
   
