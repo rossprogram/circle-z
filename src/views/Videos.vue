@@ -8,7 +8,7 @@
     </pane>
     <pane size="20">
       <ul class="library">
-	<li :class="{active: video.video === playingVideo}"
+	<li @contextmenu.prevent="showMenu(video.video)" :class="{active: video.video === playingVideo}"
 	    @click="playVideo(video.video)" v-for="video in videos" :key="video.video">
 	  <span class="title"><Tex>{{ video.title }}</Tex></span>
 	  <span class="author">{{ video.author }}</span>
@@ -26,6 +26,10 @@ import Header from '@/components/Header.vue';
 import VideoPlayer from '@/components/VideoPlayer.vue';
 import 'video.js/dist/video-js.css';
 import Tex from '@/components/Tex';
+
+const {
+  getCurrentWindow, Menu, MenuItem, shell,
+} = require('electron').remote;
 
 export default {
   computed: {
@@ -49,6 +53,19 @@ export default {
       'getVideo',
     ]),
 
+    showMenu(video) {
+      const menu = new Menu();
+
+      const menuItem = new MenuItem({
+	label: 'Open video in browser',
+	click: () => {
+	  shell.openExternal(`http://videos.rossprogram.org.s3.amazonaws.com/${video}.mp4`);
+	},
+      });
+      menu.append(menuItem);
+
+      menu.popup(getCurrentWindow());
+    },
   },
 
   
