@@ -116,9 +116,14 @@ ipcMain.on('tex', async (event, document, texmf) => {
   console.log('Launching TeX...');
 
   if (rossClass) texmf['ross.cls'] = rossClass;
+
+  str = str.replace(regxp, ' ');
+  const cleanedDocument = document
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n');
   
   library.deleteEverything();
-  library.setTexput(document);
+  library.setTexput(cleanedDocument);
   library.setTexmfExtra(texmf);
 
   library.setConsoleWriter((x) => {
@@ -129,12 +134,4 @@ ipcMain.on('tex', async (event, document, texmf) => {
   
   event.reply('dvi', dvi);
  
-  //console.log(arg);
-  //p.send('hello');
-  /*
-    p.on('message', (m) => {
-    console.log('Got message:', m);
-    });*/
-  
-  //  event.reply('asynchronous-reply', 'dvi');
 });
