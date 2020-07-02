@@ -5,6 +5,7 @@
       <span class="toolbar">
 	<label for="sort-by">Sort by </label>
 	<select  v-model="sortBy" name="sort-by" id="sort-by">
+    <option value="default">Default</option>
 	  <option value="top">Top</option>
 	  <option value="recent">Recent</option>
 	  <option value="oldest">Oldest</option>
@@ -67,7 +68,7 @@ export default {
 
   data() {
     return {
-      sortBy: 'top',
+      sortBy: 'default',
     };
   },
 
