@@ -1,9 +1,9 @@
 <template>
   <div id="content">
 <splitpanes horizontal class="default-theme">
-  <pane min-size="50" size="70" max-size="100">
+  <pane min-size="50" size="75" max-size="100">
     <splitpanes class="default-theme">
-      <pane min-size="20" size="70" max-size="80">
+      <pane min-size="20" size="65" max-size="80">
 	<div id="editor"  tabindex="-1" @keyup.enter="maybeCompile"></div>
       </pane>
       <pane class="viewer-pane">
