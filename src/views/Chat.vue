@@ -5,7 +5,7 @@
 	@chalkboard='chalkboard'
 	:buttons="{ Chalkboard: 'chalkboard', Editor: 'pencil-alt', Leave: 'sign-out-alt' }">
   <splitpanes class="default-theme">
-    <pane min-size="50" size="70" max-size="80">
+    <pane min-size="50" size="70" max-size="90">
       <div @contextmenu="showMenu" class="chat">
 	<div class="transcript">
 	  <ChatEvent v-for="message in transcript"
