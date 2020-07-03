@@ -25,7 +25,7 @@
 	       placeholder="Type your message…"/>
       </div>
     </pane>
-    <pane size="20">
+    <pane size="15">
       <ul class="user-list">
 	<li v-for="user in usersInRoom" v-bind:key="user" :userId="user">
 	  <User v-bind:key="user" :userId="user"/>
