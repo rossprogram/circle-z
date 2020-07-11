@@ -12,6 +12,8 @@ import * as service from '../services';
 
 const diffMatchPatch = new DiffMatchPatch();
 
+const ElevatorDing = 'http://soundbible.com/mp3/Elevator Ding-SoundBible.com-685385892.mp3';
+
 Vue.use(Vuex);
 
 let persistPath = '/';
@@ -329,8 +331,10 @@ export default new Vuex.Store({
     pushPrivateMessage(state, { user, message }) {
       if (state.privateTranscripts[user] !== undefined) {
         state.privateTranscripts[user].push({ ...message, id: state.counter });
+        //playSound(ElevatorDing);
       } else {
         Vue.set(state.privateTranscripts, user, [{ ...message, id: state.counter }]);
+        //playSound(ElevatorDing);
       }
 
       state.counter += 1;
@@ -339,18 +343,29 @@ export default new Vuex.Store({
     incrementUnreadCount(state, roomname) {
       if (state.unreadCounts[roomname] !== undefined) {
         Vue.set(state.unreadCounts, roomname, state.unreadCounts[roomname] + 1);
+        playSound(ElevatorDing);
       } else {
         Vue.set(state.unreadCounts, roomname, 1);
+        playSound(ElevatorDing);
       }
     },
 
     incrementPrivateUnreadCount(state, id) {
       if (state.privateUnreadCounts[id] !== undefined) {
         Vue.set(state.privateUnreadCounts, id, state.privateUnreadCounts[id] + 1);
+        playSound(ElevatorDing);
       } else {
         Vue.set(state.privateUnreadCounts, id, 1);
+        playSound(ElevatorDing);
       }
     },
+
+    playSound (sound) {
+      if(sound) {
+        var audio = new Audio(sound);
+        audio.play();
+      }
+    }
 
     setServerParameters(state, {
       server, port, password, email, 
