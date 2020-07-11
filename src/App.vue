@@ -3,7 +3,7 @@
     <Snackbar/>
     <router-view v-if="$route.meta && $route.meta.fullscreen"/>
     <splitpanes v-else class="default-theme">
-      <pane min-size="10" size="20" max-size="40">
+      <pane min-size="10" size="15" max-size="40">
 	<ChannelList/>
       </pane>
       <pane size="60">
