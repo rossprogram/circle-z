@@ -76,8 +76,14 @@ export default {
 	    }
 	    return false;
 	  }	  
-	  
-	  return true;
+
+	  if (JSON.stringify(m).toLowerCase().match(this.search.toLowerCase())) return true;
+	  if (this.users[m.author]) {
+	    if (JSON.stringify(this.users[m.author]).toLowerCase()
+		.match(this.search.toLowerCase())) return true;
+	  }
+	  	  
+	  return false;
 	});
 	
 	return keys.sort((x, y) => {
