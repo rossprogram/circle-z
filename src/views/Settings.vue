@@ -52,6 +52,11 @@
 
     <hr/>
 
+    <input type="checkbox" id="audioNotifications"
+	   :checked="audioNotifications" @change="updateAudioNotifications"/>
+    <label for="audioNotifications">Play a sound when messages arrive</label>        
+    <hr/>
+    
     <p>Your local time is {{ localTime }}, which is {{ localEasternTime }} in the Ross timezone.</p>
     
     <div v-if="connected">
@@ -133,6 +138,7 @@ export default {
 		 'serverMemoryUsed',
 		 'serverTime', 'pingTime',
 		 'self',
+		 'audioNotifications',
 		]),
 
     pingTimeRelative() {
@@ -180,7 +186,11 @@ export default {
       this.makeAnnouncement(this.announcement);
       this.announcement = '';
     },
-
+    
+    updateAudioNotifications(e) {
+      this.$store.dispatch('updateAudioNotifications', e.target.checked);
+    },
+    
     updatePassword(e) {
       this.updateServerParameters({ password: e.target.value });
     },

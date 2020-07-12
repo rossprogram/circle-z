@@ -12,8 +12,6 @@ import * as service from '../services';
 
 const diffMatchPatch = new DiffMatchPatch();
 
-const ElevatorDing = 'http://soundbible.com/mp3/Elevator Ding-SoundBible.com-685385892.mp3';
-
 Vue.use(Vuex);
 
 let persistPath = '/';
@@ -23,11 +21,30 @@ if (electron) {
   else persistPath = electron.app.getPath('userData');
 
   if (electron.remote) persistPath = electron.remote.app.getPath('userData');
-  else persistPath = electron.app.getPath('userData');  
+  else persistPath = electron.app.getPath('userData');
 }
 
-let showAnnouncement = function () {};
-let openExternal = function (url) { console.log('Failed to open', url); };
+const { ipcMain } = require('electron');
+
+let playSound = () => {};
+let sendNotification = () => {};
+
+if (electron) {
+  if (electron.ipcMain) {
+    ipcMain.on('dinger', (event) => {
+      playSound = () => {
+        event.reply('ding');
+      };
+      
+      sendNotification = (args) => {
+        event.reply('notify', args);
+      };
+    });
+  }
+}
+
+let showAnnouncement = () => {};
+let openExternal = (url) => { console.log('Failed to open', url); };
 
 if (electron) {
   if (electron.shell) {
@@ -75,10 +92,14 @@ const vuexPersist = new VuexPersistence({
     everConnected: state.everConnected,
     readPosts: state.readPosts,
     family: state.family,
+    audioNotifications: state.audioNotifications,
   }),
   filter: (mutation) => ((mutation.type === 'setServerParameters')
                         || (mutation.type === 'addToFamily')
-                        || (mutation.type === 'removeFromFamily')                                                
+                        || (mutation.type === 'removeFromFamily')
+
+                        || (mutation.type === 'setAudioNotifications')                        
+
                         || (mutation.type === 'markPostRead')
                         || (mutation.type === 'markPostUnread')                        
                         || (mutation.type === 'connected')),
@@ -143,6 +164,8 @@ export default new Vuex.Store({
 
     texFiles: {},
     fileList: [],
+
+    audioNotifications: true,
   },
 
   getters: {
@@ -161,6 +184,10 @@ export default new Vuex.Store({
   mutations: {
     setFileList(state, { filenames }) {
       state.fileList = filenames;
+    },
+
+    setAudioNotifications(state, value) {
+      state.audioNotifications = value;
     },
 
     setProblemSets(state, { sets }) {
@@ -331,41 +358,39 @@ export default new Vuex.Store({
     pushPrivateMessage(state, { user, message }) {
       if (state.privateTranscripts[user] !== undefined) {
         state.privateTranscripts[user].push({ ...message, id: state.counter });
-        //playSound(ElevatorDing);
       } else {
         Vue.set(state.privateTranscripts, user, [{ ...message, id: state.counter }]);
-        //playSound(ElevatorDing);
       }
 
+      if (message.text) {
+        sendNotification({
+          title: state.users[user].username,
+          body: message.text, 
+        });
+      }
+      
       state.counter += 1;
     },    
     
     incrementUnreadCount(state, roomname) {
       if (state.unreadCounts[roomname] !== undefined) {
         Vue.set(state.unreadCounts, roomname, state.unreadCounts[roomname] + 1);
-        playSound(ElevatorDing);
+        playSound();
       } else {
         Vue.set(state.unreadCounts, roomname, 1);
-        playSound(ElevatorDing);
+        playSound();
       }
     },
 
     incrementPrivateUnreadCount(state, id) {
       if (state.privateUnreadCounts[id] !== undefined) {
         Vue.set(state.privateUnreadCounts, id, state.privateUnreadCounts[id] + 1);
-        playSound(ElevatorDing);
+        playSound();
       } else {
         Vue.set(state.privateUnreadCounts, id, 1);
-        playSound(ElevatorDing);
+        playSound();
       }
     },
-
-    playSound (sound) {
-      if(sound) {
-        var audio = new Audio(sound);
-        audio.play();
-      }
-    }
 
     setServerParameters(state, {
       server, port, password, email, 
@@ -1013,7 +1038,13 @@ export default new Vuex.Store({
 
     getGradingQueue({ commit }) { // eslint-disable-line no-unused-vars
       service.getGradingQueue();
-    },    
+    },
+
+    updateAudioNotifications({ commit }, audioNotifications) {
+      console.log(audioNotifications);
+      commit('setAudioNotifications', audioNotifications);
+    },
+
   },
 
   modules: {

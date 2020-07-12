@@ -131,13 +131,17 @@
 import { mapState, mapGetters } from 'vuex';
 import Channel from './Channel.vue';
 
+import elevatorDing from '../../sounds/Elevator Ding-SoundBible.com-685385892.mp3';
+
 const { remote } = require('electron');
+const { ipcRenderer } = require('electron');
 
 export default {
   computed: {
     ...mapState(['server', 'connected', 'connecting',
 		 'unreadCounts', 'joinedRooms', 'isStaff',
 		 'privateTranscripts', 'users', 'privateUnreadCounts',
+		 'audioNotifications',
 		]),
 
     ...mapGetters(['mumbleUrl',
@@ -194,6 +198,27 @@ export default {
       remote.shell.openExternal(this.mumbleUrl);
     },
 
+  },
+
+  created() {
+    ipcRenderer.on('ding', () => {
+      if (this.audioNotifications) {
+	const audio = new Audio(elevatorDing);
+	audio.play();
+      }
+    });
+
+    ipcRenderer.on('notify', (event, args) => {
+      const myNotification = new Notification(args.title, {
+	body: args.body,
+      });
+
+      myNotification.onclick = () => {
+	console.log('Notification clicked');
+      };
+    });
+
+    ipcRenderer.send('dinger');
   },
   
   name: 'ChannelList',
