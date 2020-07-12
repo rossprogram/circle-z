@@ -90,7 +90,13 @@
 
       <li class="zoom" @click="zoom">
 	<span><font-awesome-icon icon="video" />
-	  ZOOM
+	  ZOOM CLASSROOM
+	</span>
+      </li>
+
+      <li class="zoom" @click="zoom2">
+	<span><font-awesome-icon icon="video" />
+	  ZOOM COLLABORATION
 	</span>
       </li>
 
@@ -191,6 +197,9 @@ export default {
     zoom() {
       remote.shell.openExternal('https://zoom.us/my/rossmath?pwd=R2dSMG1ETDltRVNGT2tvT1hDcEg5dz09');
     },
+    zoom2() {
+      remote.shell.openExternal('https://zoom.us/j/9476159669?pwd=QzdpYy80TllpRXdlRGw1Z3g0R3R6Zz09');
+    },    
     douyu() {
       remote.shell.openExternal('https://www.douyu.com/8934975');
     },    
